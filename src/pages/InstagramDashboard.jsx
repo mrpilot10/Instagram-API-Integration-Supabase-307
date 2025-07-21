@@ -9,7 +9,7 @@ import { useInstagram } from '../hooks/useInstagram'
 const { 
   FiUser, FiImage, FiVideo, FiHeart, FiMessageCircle, FiCalendar, 
   FiExternalLink, FiRefreshCw, FiLogOut, FiCamera, FiUsers, 
-  FiUserPlus, FiAward, FiAlertCircle, FiInfo
+  FiUserPlus, FiAward, FiAlertCircle, FiInfo, FiGlobe, FiEdit3
 } = FiIcons
 
 const InstagramDashboard = () => {
@@ -119,7 +119,10 @@ const InstagramDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8 flex justify-between items-center"
         >
-          <h1 className="text-3xl font-bold text-gray-900">Instagram Dashboard</h1>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Instagram Dashboard</h1>
+            <p className="text-sm text-green-600 mt-1">✅ Connected with Enhanced Business API</p>
+          </div>
           <div className="flex items-center space-x-4">
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -147,7 +150,7 @@ const InstagramDashboard = () => {
           {/* Left Column */}
           <div className="lg:col-span-4 space-y-8">
             {/* User Profile */}
-            <UserProfile user={user} onDisconnect={handleDisconnect} />
+            <EnhancedUserProfile user={user} onDisconnect={handleDisconnect} />
             
             {/* Account Stats */}
             <StatsCard user={user} posts={posts} />
@@ -166,8 +169,8 @@ const InstagramDashboard = () => {
   )
 }
 
-// User Profile Component
-const UserProfile = ({ user, onDisconnect }) => {
+// Enhanced User Profile Component with new fields
+const EnhancedUserProfile = ({ user, onDisconnect }) => {
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }} 
@@ -218,6 +221,28 @@ const UserProfile = ({ user, onDisconnect }) => {
         </div>
       </div>
       
+      {/* Enhanced Profile Info */}
+      {(user.biography || user.website) && (
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+          {user.biography && (
+            <p className="text-sm text-gray-700 mb-2">{user.biography}</p>
+          )}
+          {user.website && (
+            <div className="flex items-center space-x-2">
+              <SafeIcon icon={FiGlobe} className="text-gray-500 text-sm" />
+              <a 
+                href={user.website} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-sm text-blue-600 hover:text-blue-800 truncate"
+              >
+                {user.website}
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+      
       <div className="grid grid-cols-3 gap-4 text-center">
         <div className="flex flex-col items-center">
           <SafeIcon icon={FiCamera} className="text-gray-500 mb-2" />
@@ -245,7 +270,7 @@ const UserProfile = ({ user, onDisconnect }) => {
   )
 }
 
-// Stats Card Component
+// Stats Card Component (unchanged)
 const StatsCard = ({ user, posts }) => {
   if (!user) return null
 
@@ -326,7 +351,7 @@ const StatsCard = ({ user, posts }) => {
   )
 }
 
-// Connection Info Component
+// Enhanced Connection Info Component
 const ConnectionInfo = ({ user }) => {
   if (!user) return null
   
@@ -344,7 +369,7 @@ const ConnectionInfo = ({ user }) => {
       <div className="space-y-3 text-sm">
         <div className="flex items-center text-green-600">
           <SafeIcon icon={FiIcons.FiCheck} className="mr-2" />
-          <span>Connected to Instagram Business API</span>
+          <span>Connected with Enhanced Business API</span>
         </div>
         
         <div className="flex items-center text-gray-600">
@@ -354,7 +379,29 @@ const ConnectionInfo = ({ user }) => {
         
         <div className="flex items-center text-gray-600">
           <SafeIcon icon={FiIcons.FiKey} className="mr-2" />
-          <span>Access token valid</span>
+          <span>Long-lived access token (60 days)</span>
+        </div>
+        
+        <div className="bg-gray-50 rounded-lg p-3 mt-4">
+          <p className="text-xs text-gray-600 font-medium mb-2">Active Permissions:</p>
+          <div className="space-y-1 text-xs text-gray-500">
+            <div className="flex items-center">
+              <SafeIcon icon={FiUser} className="mr-1" />
+              <span>Business Profile Access</span>
+            </div>
+            <div className="flex items-center">
+              <SafeIcon icon={FiEdit3} className="mr-1" />
+              <span>Content Publishing</span>
+            </div>
+            <div className="flex items-center">
+              <SafeIcon icon={FiMessageCircle} className="mr-1" />
+              <span>Message Management</span>
+            </div>
+            <div className="flex items-center">
+              <SafeIcon icon={FiIcons.FiMessageSquare} className="mr-1" />
+              <span>Comment Management</span>
+            </div>
+          </div>
         </div>
         
         <p className="text-gray-500 text-xs mt-4">
@@ -365,7 +412,7 @@ const ConnectionInfo = ({ user }) => {
   )
 }
 
-// Posts Grid Component
+// Enhanced Posts Grid Component
 const PostsGrid = ({ posts }) => {
   if (!posts || posts.length === 0) {
     return (
@@ -420,19 +467,22 @@ const PostsGrid = ({ posts }) => {
                   }}
                 />
               )}
-              <div
-                className="w-full h-full hidden items-center justify-center bg-gray-200"
-              >
+              <div className="w-full h-full hidden items-center justify-center bg-gray-200">
                 <SafeIcon icon={FiImage} className="text-gray-500 text-3xl" />
               </div>
               
-              <div className="absolute top-3 right-3">
+              <div className="absolute top-3 right-3 flex space-x-2">
                 <div className="bg-black bg-opacity-50 rounded-full p-1">
                   <SafeIcon
                     icon={post.media_type === 'VIDEO' ? FiVideo : FiImage}
                     className="text-white text-sm"
                   />
                 </div>
+                {post.is_comment_enabled === false && (
+                  <div className="bg-red-500 bg-opacity-80 rounded-full p-1">
+                    <SafeIcon icon={FiIcons.FiMessageCircle} className="text-white text-xs" />
+                  </div>
+                )}
               </div>
               
               {post.permalink && (
@@ -454,7 +504,7 @@ const PostsGrid = ({ posts }) => {
                 </p>
               )}
               
-              <div className="flex items-center justify-between text-xs text-gray-500">
+              <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-1">
                     <SafeIcon icon={FiHeart} />
@@ -473,6 +523,12 @@ const PostsGrid = ({ posts }) => {
                   </div>
                 )}
               </div>
+              
+              {post.media_product_type && (
+                <div className="text-xs text-gray-400">
+                  Type: {post.media_product_type}
+                </div>
+              )}
             </div>
           </motion.div>
         ))}

@@ -1,7 +1,7 @@
 const { createClient } = require('@supabase/supabase-js')
 const fetch = require('node-fetch')
 
-// Instagram App Configuration - Updated for Instagram Business API
+// Instagram App Configuration - Updated for new scopes
 const INSTAGRAM_CLIENT_ID = '1413379789860625'
 const INSTAGRAM_CLIENT_SECRET = 'e1be236ec20e1c5e154f094b09dbac84'
 const INSTAGRAM_REDIRECT_URI = 'https://instagram-api-integration-supabase.vercel.app/auth/instagram/callback'
@@ -13,7 +13,7 @@ const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 // Initialize Supabase client
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-// Save user to Supabase
+// Save user to Supabase with enhanced fields
 async function saveUserToSupabase(profile, accessToken, tokenExpiresAt) {
   try {
     const userData = {
@@ -25,28 +25,32 @@ async function saveUserToSupabase(profile, accessToken, tokenExpiresAt) {
       followers_count: profile.followers_count,
       follows_count: profile.follows_count,
       profile_picture_url: profile.profile_picture_url,
+      biography: profile.biography || null,
+      website: profile.website || null,
       access_token: accessToken,
       token_expires_at: tokenExpiresAt,
       updated_at: new Date().toISOString(),
     }
-
+    
     const { error } = await supabase
       .from('instagram_users_x7y9z2')
       .upsert(userData, { onConflict: 'instagram_id', ignoreDuplicates: false })
-
+    
     if (error) throw error
+    
+    console.log('✅ User saved to Supabase:', profile.username)
     return true
   } catch (error) {
-    console.error('Error saving user to Supabase:', error)
+    console.error('❌ Error saving user to Supabase:', error)
     return false
   }
 }
 
-// Save posts to Supabase
+// Save posts to Supabase with enhanced fields
 async function savePostsToSupabase(userId, posts) {
   try {
     if (!posts || posts.length === 0) return true
-
+    
     const postsData = posts.map(post => ({
       instagram_id: post.id,
       user_instagram_id: userId,
@@ -58,17 +62,21 @@ async function savePostsToSupabase(userId, posts) {
       permalink: post.permalink,
       like_count: post.like_count,
       comments_count: post.comments_count,
+      is_comment_enabled: post.is_comment_enabled,
+      media_product_type: post.media_product_type,
       created_at: new Date().toISOString(),
     }))
-
+    
     const { error } = await supabase
       .from('instagram_posts_x7y9z2')
       .upsert(postsData, { onConflict: 'instagram_id', ignoreDuplicates: false })
-
+    
     if (error) throw error
+    
+    console.log(`✅ ${posts.length} posts saved to Supabase`)
     return true
   } catch (error) {
-    console.error('Error saving posts to Supabase:', error)
+    console.error('❌ Error saving posts to Supabase:', error)
     return false
   }
 }
@@ -80,7 +88,7 @@ exports.handler = async (event, context) => {
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   }
-
+  
   // Handle preflight OPTIONS request
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -89,7 +97,7 @@ exports.handler = async (event, context) => {
       body: ''
     }
   }
-
+  
   // Only allow POST method
   if (event.httpMethod !== 'POST') {
     return {
@@ -98,11 +106,11 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({ error: 'Method not allowed' })
     }
   }
-
+  
   try {
     // Parse request body
     const { code } = JSON.parse(event.body || '{}')
-
+    
     if (!code) {
       return {
         statusCode: 400,
@@ -110,9 +118,10 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({ error: 'Authorization code required' })
       }
     }
-
+    
     console.log('📝 Processing Instagram auth with code:', code.substring(0, 10) + '...')
-
+    console.log('🔄 Using NEW Instagram Business API scopes')
+    
     // ✅ UPDATED: Exchange code for short-lived access token using Instagram Business API
     console.log('🔄 Exchanging code for token...')
     const formData = new URLSearchParams()
@@ -121,7 +130,7 @@ exports.handler = async (event, context) => {
     formData.append('grant_type', 'authorization_code')
     formData.append('redirect_uri', INSTAGRAM_REDIRECT_URI)
     formData.append('code', code)
-
+    
     const tokenResponse = await fetch('https://api.instagram.com/oauth/access_token', {
       method: 'POST',
       headers: {
@@ -129,9 +138,9 @@ exports.handler = async (event, context) => {
       },
       body: formData
     })
-
+    
     const tokenData = await tokenResponse.json()
-
+    
     if (tokenData.error) {
       console.error('❌ Token exchange error:', tokenData)
       return {
@@ -143,10 +152,10 @@ exports.handler = async (event, context) => {
         })
       }
     }
-
+    
     console.log('✅ Received short-lived token and user ID:', tokenData.user_id)
     const shortLivedToken = tokenData.access_token
-
+    
     // ✅ UPDATED: Exchange for long-lived token (60 days) using Instagram Business API
     console.log('🔄 Getting long-lived token...')
     const longLivedParams = new URLSearchParams({
@@ -154,10 +163,10 @@ exports.handler = async (event, context) => {
       client_secret: INSTAGRAM_CLIENT_SECRET,
       access_token: shortLivedToken
     })
-
+    
     const longLivedResponse = await fetch(`https://graph.instagram.com/access_token?${longLivedParams}`)
     const longLivedData = await longLivedResponse.json()
-
+    
     if (longLivedData.error) {
       console.error('❌ Long-lived token error:', longLivedData)
       return {
@@ -169,16 +178,16 @@ exports.handler = async (event, context) => {
         })
       }
     }
-
+    
     console.log('✅ Received long-lived token with expiry:', longLivedData.expires_in)
     const accessToken = longLivedData.access_token
-
+    
     // Calculate token expiration date (60 days from now)
     const tokenExpiresAt = new Date()
     tokenExpiresAt.setSeconds(tokenExpiresAt.getSeconds() + longLivedData.expires_in)
-
-    // ✅ UPDATED: Get user profile using Instagram Business API
-    console.log('🔄 Fetching user profile...')
+    
+    // ✅ UPDATED: Get user profile using Instagram Business API with enhanced fields
+    console.log('🔄 Fetching user profile with enhanced fields...')
     const fields = [
       'id',
       'username',
@@ -187,17 +196,19 @@ exports.handler = async (event, context) => {
       'media_count',
       'profile_picture_url',
       'followers_count',
-      'follows_count'
+      'follows_count',
+      'biography',
+      'website'
     ].join(',')
-
+    
     const profileParams = new URLSearchParams({
       fields,
       access_token: accessToken
     })
-
+    
     const profileResponse = await fetch(`https://graph.instagram.com/me?${profileParams}`)
     const profile = await profileResponse.json()
-
+    
     if (profile.error) {
       console.error('❌ Profile fetch error:', profile)
       return {
@@ -209,36 +220,36 @@ exports.handler = async (event, context) => {
         })
       }
     }
-
+    
     console.log('✅ Received user profile:', profile.username)
-
-    // ✅ UPDATED: Get user media using Instagram Business API
-    console.log('🔄 Fetching user media...')
+    
+    // ✅ UPDATED: Get user media using Instagram Business API with enhanced fields
+    console.log('🔄 Fetching user media with enhanced fields...')
     const mediaParams = new URLSearchParams({
-      fields: 'id,caption,media_type,media_url,thumbnail_url,timestamp,permalink,like_count,comments_count',
+      fields: 'id,caption,media_type,media_url,thumbnail_url,timestamp,permalink,like_count,comments_count,is_comment_enabled,media_product_type',
       access_token: accessToken,
       limit: '25'
     })
-
+    
     const mediaResponse = await fetch(`https://graph.instagram.com/me/media?${mediaParams}`)
     const mediaData = await mediaResponse.json()
-
+    
     if (mediaData.error) {
       console.error('❌ Media fetch error:', mediaData)
       // Continue anyway, just log the error
     }
-
+    
     const media = mediaData.error ? { data: [] } : mediaData
     console.log(`✅ Received ${media.data ? media.data.length : 0} media items`)
-
+    
     // Step 5: Save to Supabase
     console.log('🔄 Saving data to Supabase...')
     await saveUserToSupabase(profile, accessToken, tokenExpiresAt.toISOString())
-
+    
     if (media.data && media.data.length > 0) {
       await savePostsToSupabase(profile.id, media.data)
     }
-
+    
     // Step 6: Return success response with user data and token
     return {
       statusCode: 200,
@@ -251,10 +262,10 @@ exports.handler = async (event, context) => {
           access_token: accessToken,
           expires_at: tokenExpiresAt.toISOString(),
           user_id: profile.id
-        }
+        },
+        scopes_used: 'instagram_business_basic,instagram_business_content_publish,instagram_business_manage_messages,instagram_business_manage_comments'
       })
     }
-
   } catch (error) {
     console.error('❌ Instagram auth error:', error)
     return {

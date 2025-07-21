@@ -4,7 +4,7 @@ import SafeIcon from '../common/SafeIcon'
 import * as FiIcons from 'react-icons/fi'
 import { redirectToInstagramAuth } from '../services/instagramApi'
 
-const { FiInstagram, FiUser, FiImage, FiUsers, FiMessageCircle } = FiIcons
+const { FiInstagram, FiUser, FiImage, FiUsers, FiMessageCircle, FiEdit3, FiSettings } = FiIcons
 
 const InstagramPage = () => {
   const [loading, setLoading] = useState(false)
@@ -12,6 +12,7 @@ const InstagramPage = () => {
   const handleConnect = () => {
     setLoading(true)
     console.log('🎯 Instagram Business Connect button clicked!')
+    console.log('✅ Using NEW Instagram Business API scopes')
     redirectToInstagramAuth()
   }
 
@@ -29,26 +30,30 @@ const InstagramPage = () => {
           Connect Instagram Business
         </h1>
         <p className="text-gray-600">
-          Connect your Instagram Business or Creator account to manage your presence
+          Connect your Instagram Business or Creator account with enhanced permissions
         </p>
       </div>
 
       <div className="space-y-4 mb-8">
         <div className="flex items-center space-x-3 text-sm text-gray-600">
           <SafeIcon icon={FiUser} className="text-purple-500 flex-shrink-0" />
-          <span>Access your business profile information</span>
+          <span>Access your business profile and analytics</span>
         </div>
         <div className="flex items-center space-x-3 text-sm text-gray-600">
           <SafeIcon icon={FiImage} className="text-purple-500 flex-shrink-0" />
           <span>View and manage your content</span>
         </div>
         <div className="flex items-center space-x-3 text-sm text-gray-600">
+          <SafeIcon icon={FiEdit3} className="text-purple-500 flex-shrink-0" />
+          <span>Publish and schedule content</span>
+        </div>
+        <div className="flex items-center space-x-3 text-sm text-gray-600">
           <SafeIcon icon={FiMessageCircle} className="text-purple-500 flex-shrink-0" />
-          <span>Access engagement metrics</span>
+          <span>Manage messages and comments</span>
         </div>
         <div className="flex items-center space-x-3 text-sm text-gray-600">
           <SafeIcon icon={FiUsers} className="text-purple-500 flex-shrink-0" />
-          <span>View followers and insights</span>
+          <span>View followers and engagement insights</span>
         </div>
       </div>
 
@@ -69,13 +74,22 @@ const InstagramPage = () => {
         )}
       </motion.button>
       
-      <div className="mt-6 text-center">
+      <div className="mt-6 text-center space-y-2">
+        <p className="text-xs text-green-600 font-medium">
+          ✅ Uses Latest Instagram Business API (2024)
+        </p>
         <p className="text-xs text-gray-500">
-          ✅ Uses Instagram Business API with proper scopes
+          Enhanced permissions for content management
         </p>
-        <p className="text-xs text-gray-500 mt-1">
-          Requires Instagram Business or Creator account
-        </p>
+        <div className="bg-gray-50 rounded-lg p-3 mt-4">
+          <p className="text-xs text-gray-600 font-medium mb-2">New API Scopes:</p>
+          <div className="space-y-1 text-xs text-gray-500">
+            <div>• instagram_business_basic</div>
+            <div>• instagram_business_content_publish</div>
+            <div>• instagram_business_manage_messages</div>
+            <div>• instagram_business_manage_comments</div>
+          </div>
+        </div>
       </div>
     </motion.div>
   )

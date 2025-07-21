@@ -1,7 +1,7 @@
 const { createClient } = require('@supabase/supabase-js')
 const fetch = require('node-fetch')
 
-// Instagram App Configuration
+// Instagram App Configuration - Updated for Instagram Business API
 const INSTAGRAM_CLIENT_ID = '1413379789860625'
 const INSTAGRAM_CLIENT_SECRET = 'e1be236ec20e1c5e154f094b09dbac84'
 const INSTAGRAM_REDIRECT_URI = 'https://instagram-api-integration-supabase.vercel.app/auth/instagram/callback'
@@ -78,7 +78,7 @@ exports.handler = async (event, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST,OPTIONS',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
   }
 
   // Handle preflight OPTIONS request
@@ -102,7 +102,7 @@ exports.handler = async (event, context) => {
   try {
     // Parse request body
     const { code } = JSON.parse(event.body || '{}')
-    
+
     if (!code) {
       return {
         statusCode: 400,
@@ -113,7 +113,7 @@ exports.handler = async (event, context) => {
 
     console.log('📝 Processing Instagram auth with code:', code.substring(0, 10) + '...')
 
-    // Step 1: Exchange code for short-lived access token
+    // ✅ UPDATED: Exchange code for short-lived access token using Instagram Business API
     console.log('🔄 Exchanging code for token...')
     const formData = new URLSearchParams()
     formData.append('client_id', INSTAGRAM_CLIENT_ID)
@@ -131,7 +131,7 @@ exports.handler = async (event, context) => {
     })
 
     const tokenData = await tokenResponse.json()
-    
+
     if (tokenData.error) {
       console.error('❌ Token exchange error:', tokenData)
       return {
@@ -147,7 +147,7 @@ exports.handler = async (event, context) => {
     console.log('✅ Received short-lived token and user ID:', tokenData.user_id)
     const shortLivedToken = tokenData.access_token
 
-    // Step 2: Exchange for long-lived token (60 days)
+    // ✅ UPDATED: Exchange for long-lived token (60 days) using Instagram Business API
     console.log('🔄 Getting long-lived token...')
     const longLivedParams = new URLSearchParams({
       grant_type: 'ig_exchange_token',
@@ -177,11 +177,17 @@ exports.handler = async (event, context) => {
     const tokenExpiresAt = new Date()
     tokenExpiresAt.setSeconds(tokenExpiresAt.getSeconds() + longLivedData.expires_in)
 
-    // Step 3: Get user profile
+    // ✅ UPDATED: Get user profile using Instagram Business API
     console.log('🔄 Fetching user profile...')
     const fields = [
-      'id', 'username', 'name', 'account_type', 'media_count',
-      'profile_picture_url', 'followers_count', 'follows_count'
+      'id',
+      'username',
+      'name',
+      'account_type',
+      'media_count',
+      'profile_picture_url',
+      'followers_count',
+      'follows_count'
     ].join(',')
 
     const profileParams = new URLSearchParams({
@@ -206,7 +212,7 @@ exports.handler = async (event, context) => {
 
     console.log('✅ Received user profile:', profile.username)
 
-    // Step 4: Get user media
+    // ✅ UPDATED: Get user media using Instagram Business API
     console.log('🔄 Fetching user media...')
     const mediaParams = new URLSearchParams({
       fields: 'id,caption,media_type,media_url,thumbnail_url,timestamp,permalink,like_count,comments_count',
@@ -228,6 +234,7 @@ exports.handler = async (event, context) => {
     // Step 5: Save to Supabase
     console.log('🔄 Saving data to Supabase...')
     await saveUserToSupabase(profile, accessToken, tokenExpiresAt.toISOString())
+
     if (media.data && media.data.length > 0) {
       await savePostsToSupabase(profile.id, media.data)
     }

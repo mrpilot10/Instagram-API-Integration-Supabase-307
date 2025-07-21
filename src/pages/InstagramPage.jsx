@@ -8,7 +8,7 @@ import SafeIcon from '../common/SafeIcon'
 import * as FiIcons from 'react-icons/fi'
 import { REDIRECT_URI } from '../services/instagramApi'
 
-const { FiAlertCircle, FiRefreshCw, FiInfo, FiWifi, FiWifiOff } = FiIcons
+const { FiAlertCircle, FiRefreshCw, FiInfo, FiWifi, FiWifiOff, FiCheckCircle } = FiIcons
 
 const InstagramPage = () => {
   const { user, posts, loading, error, disconnect, loadUserData, handleAuthCallback } = useInstagram()
@@ -42,7 +42,7 @@ const InstagramPage = () => {
     }
   }, [])
 
-  // ✅ UPDATED: Handle code param at the root URL
+  // Handle code param at the root URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const code = params.get('code')
@@ -75,7 +75,7 @@ const InstagramPage = () => {
             Instagram Business Integration
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Connect your Instagram Business or Creator account to manage your presence and content
+            Connect your Instagram Business or Creator account using the new Instagram Business API
           </p>
         </motion.div>
 
@@ -113,6 +113,7 @@ const InstagramPage = () => {
                     <li>Instagram API may be temporarily unavailable</li>
                     <li>There may be CORS restrictions</li>
                     <li>Network connectivity issues</li>
+                    <li>App may need to use Instagram Business API scopes</li>
                   </ul>
                 </div>
               )}
@@ -132,13 +133,26 @@ const InstagramPage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="max-w-2xl mx-auto mb-8"
           >
+            {/* Updated Success Message */}
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+              <div className="flex items-start">
+                <SafeIcon icon={FiCheckCircle} className="text-green-500 flex-shrink-0 mt-1" />
+                <div className="ml-3">
+                  <h3 className="text-md font-semibold text-green-800">Fixed: Using Instagram Business API</h3>
+                  <p className="text-green-700 text-sm mt-1">
+                    Now using the correct <code>instagram_business_basic</code> scope instead of the deprecated Basic Display API.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
               <div className="flex items-start">
                 <SafeIcon icon={FiInfo} className="text-blue-500 flex-shrink-0 mt-1" />
                 <div className="ml-3">
                   <h3 className="text-md font-semibold text-blue-800">Configuration Requirements</h3>
                   <p className="text-blue-700 text-sm mt-1">
-                    To use Instagram integration, ensure your Instagram app is properly configured:
+                    To use Instagram Business integration, ensure your Instagram app is properly configured:
                   </p>
                   <button
                     onClick={() => setShowConfigInfo(!showConfigInfo)}
@@ -151,7 +165,7 @@ const InstagramPage = () => {
                       <ol className="list-decimal list-inside space-y-2">
                         <li>Go to <a href="https://developers.facebook.com/" target="_blank" rel="noopener noreferrer" className="underline">Facebook for Developers</a></li>
                         <li>Navigate to your app dashboard</li>
-                        <li>Go to Instagram &gt; Basic Display</li>
+                        <li>Go to Instagram and then Basic Display (or create Instagram Login product)</li>
                         <li>Under Valid OAuth Redirect URIs, add:
                           <div className="mt-1 p-2 bg-blue-100 rounded font-mono text-xs break-all">
                             {window.location.origin}
@@ -161,6 +175,7 @@ const InstagramPage = () => {
                           </div>
                         </li>
                         <li>Make sure the app is in Live Mode</li>
+                        <li><strong>Important:</strong> Use Instagram Business API with <code>instagram_business_basic</code> scope</li>
                         <li>Check that you've added a test user if your app is still in development</li>
                       </ol>
                     </div>

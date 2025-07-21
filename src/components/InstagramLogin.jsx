@@ -8,14 +8,14 @@ const { FiInstagram, FiUser, FiImage, FiUsers, FiMessageCircle } = FiIcons
 
 const InstagramLogin = ({ loading }) => {
   const handleConnect = () => {
-    console.log('🎯 Instagram Connect button clicked!')
+    console.log('🎯 Instagram Business Connect button clicked!')
     redirectToInstagramAuth()
   }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }} 
-      animate={{ opacity: 1, y: 0 }} 
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
       className="max-w-md mx-auto bg-white rounded-2xl shadow-xl p-8"
     >
       <div className="text-center mb-8">
@@ -62,7 +62,7 @@ const InstagramLogin = ({ loading }) => {
           ) : (
             <>
               <SafeIcon icon={FiInstagram} className="text-xl" />
-              <span>Connect Instagram Account</span>
+              <span>Connect Instagram Business Account</span>
             </>
           )}
         </motion.button>
@@ -70,6 +70,9 @@ const InstagramLogin = ({ loading }) => {
 
       <div className="mt-6 text-center">
         <p className="text-xs text-gray-500">
+          ✅ Uses Instagram Business API with proper scopes
+        </p>
+        <p className="text-xs text-gray-500 mt-1">
           Requires Instagram Business or Creator account
         </p>
       </div>

@@ -8,7 +8,7 @@ export const useInstagram = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  // ✅ UPDATED: Handle auth callback with server-side token exchange
+  // Handle auth callback with server-side token exchange
   const handleAuthCallback = async (code) => {
     try {
       setLoading(true)
@@ -116,7 +116,6 @@ export const useInstagram = () => {
           setPosts(postsError ? [] : postsData)
         } else {
           // Token is valid but user data not in Supabase
-          // This shouldn't happen with server-side auth, but just in case
           throw new Error('User data not found')
         }
       } catch (err) {
@@ -142,8 +141,13 @@ export const useInstagram = () => {
     loadUserData()
   }, [])
 
-  // ✅ UPDATED: Handle URL callback on page load
+  // Only handle URL callback on the main page, not in the callback component
   useEffect(() => {
+    // Skip processing if we're on the callback page
+    if (window.location.pathname.includes('/auth/instagram/callback')) {
+      return
+    }
+    
     const urlParams = new URLSearchParams(window.location.search)
     const code = urlParams.get('code')
     const error = urlParams.get('error')

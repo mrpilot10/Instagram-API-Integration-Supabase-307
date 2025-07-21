@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SafeIcon from '../common/SafeIcon'
 import * as FiIcons from 'react-icons/fi'
+import { exchangeCodeForToken } from '../services/instagramApi'
 
 const { FiAlertCircle, FiCheck, FiLoader } = FiIcons
 
@@ -20,13 +21,44 @@ const InstagramCallback = () => {
 
         if (code) {
           // Successfully received auth code
-          setStatus('success')
-          // Redirect to dashboard with code
-          setTimeout(() => {
-            navigate(`/dashboard?code=${code}`)
-          }, 1500)
+          console.log('✅ Instagram Authorization Code:', code.substring(0, 10) + '...')
+          
+          try {
+            // Process the code directly here instead of redirecting
+            const authResult = await exchangeCodeForToken(code)
+            
+            if (authResult && authResult.success) {
+              console.log('✅ Authentication successful:', authResult.user.username)
+              setStatus('success')
+              
+              // Save token info to localStorage
+              const tokenInfo = {
+                access_token: authResult.token.access_token,
+                expires_at: authResult.token.expires_at,
+                user_id: authResult.token.user_id
+              }
+              localStorage.setItem('instagram_token_info', JSON.stringify(tokenInfo))
+              
+              // Redirect to dashboard after short delay
+              setTimeout(() => {
+                navigate('/dashboard')
+              }, 1500)
+            } else {
+              throw new Error('Authentication failed')
+            }
+          } catch (err) {
+            console.error('❌ Auth processing error:', err)
+            setStatus('error')
+            setError(err.message || 'Failed to process authentication')
+            
+            // Redirect to home after error
+            setTimeout(() => {
+              navigate('/')
+            }, 3000)
+          }
         } else if (error) {
           // Handle error from Instagram
+          console.error('❌ Instagram error:', error)
           setStatus('error')
           setError(error)
           setTimeout(() => {
@@ -34,6 +66,7 @@ const InstagramCallback = () => {
           }, 3000)
         } else {
           // No code or error found
+          console.error('❌ No code or error parameter found')
           setStatus('error')
           setError('No authorization code received')
           setTimeout(() => {
@@ -41,6 +74,7 @@ const InstagramCallback = () => {
           }, 3000)
         }
       } catch (err) {
+        console.error('❌ Callback processing error:', err)
         setStatus('error')
         setError(err.message)
         setTimeout(() => {

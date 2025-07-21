@@ -5,11 +5,7 @@ const INSTAGRAM_AUTH_URL = 'https://www.instagram.com/oauth/authorize'
 const INSTAGRAM_GRAPH_URL = 'https://graph.instagram.com'
 
 // Log the configuration for debugging
-console.log('Instagram Config:', {
-  INSTAGRAM_APP_ID,
-  REDIRECT_URI,
-  INSTAGRAM_AUTH_URL
-})
+console.log('Instagram Config:', { INSTAGRAM_APP_ID, REDIRECT_URI, INSTAGRAM_AUTH_URL })
 
 // Store pre-auth state for callback handling
 export const setPreAuthState = (state) => {
@@ -40,12 +36,8 @@ export const redirectToInstagramAuth = (returnUrl = '/') => {
   const state = generateState()
   
   // Store state and return URL for callback
-  setPreAuthState({
-    state,
-    returnUrl,
-    timestamp: Date.now()
-  })
-
+  setPreAuthState({ state, returnUrl, timestamp: Date.now() })
+  
   const params = new URLSearchParams({
     client_id: INSTAGRAM_APP_ID,
     redirect_uri: REDIRECT_URI,
@@ -53,7 +45,7 @@ export const redirectToInstagramAuth = (returnUrl = '/') => {
     response_type: 'code',
     state: state
   })
-
+  
   const authUrl = `${INSTAGRAM_AUTH_URL}?${params}`
   console.log('🔗 Redirecting to Instagram Business auth:', authUrl)
   window.location.href = authUrl
@@ -72,13 +64,12 @@ export const exchangeCodeForToken = async (code) => {
       },
       body: JSON.stringify({ code })
     })
-
+    
     const data = await response.json()
-
     if (!response.ok) {
       throw new Error(data.message || data.error || 'Authentication failed')
     }
-
+    
     console.log('✅ Server authentication successful')
     return data
   } catch (error) {
@@ -90,13 +81,9 @@ export const exchangeCodeForToken = async (code) => {
 // Validate access token
 export const validateToken = async (accessToken) => {
   try {
-    const params = new URLSearchParams({
-      access_token: accessToken
-    })
-
+    const params = new URLSearchParams({ access_token: accessToken })
     const response = await fetch(`${INSTAGRAM_GRAPH_URL}/me?${params}`)
     const data = await response.json()
-    
     return !data.error
   } catch (error) {
     console.error('Token validation error:', error)
@@ -117,13 +104,12 @@ export const refreshAccessToken = async (accessToken) => {
       },
       body: JSON.stringify({ access_token: accessToken })
     })
-
+    
     const data = await response.json()
-
     if (!response.ok) {
       throw new Error(data.message || data.error || 'Token refresh failed')
     }
-
+    
     console.log('✅ Token refresh successful')
     return data
   } catch (error) {
@@ -140,14 +126,14 @@ export const getUserMedia = async (accessToken, limit = 25) => {
       access_token: accessToken,
       limit: limit.toString()
     })
-
+    
     const response = await fetch(`${INSTAGRAM_GRAPH_URL}/me/media?${params}`)
     const data = await response.json()
-
+    
     if (data.error) {
       throw new Error(data.error.message || data.error)
     }
-
+    
     return data
   } catch (error) {
     console.error('Get user media error:', error)
@@ -159,24 +145,21 @@ export const getUserMedia = async (accessToken, limit = 25) => {
 export const getUserProfile = async (accessToken) => {
   try {
     const fields = [
-      'id',
-      'username',
-      'account_type',
-      'media_count'
+      'id', 'username', 'account_type', 'media_count'
     ].join(',')
-
+    
     const params = new URLSearchParams({
       fields,
       access_token: accessToken
     })
-
+    
     const response = await fetch(`${INSTAGRAM_GRAPH_URL}/me?${params}`)
     const data = await response.json()
-
+    
     if (data.error) {
       throw new Error(data.error.message || data.error)
     }
-
+    
     return data
   } catch (error) {
     console.error('Get user profile error:', error)

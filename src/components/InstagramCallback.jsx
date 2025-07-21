@@ -21,9 +21,9 @@ const InstagramCallback = () => {
         if (code) {
           // Successfully received auth code
           setStatus('success')
-          // Redirect back to main page with code
+          // Redirect to dashboard with code
           setTimeout(() => {
-            navigate(`/?code=${code}`)
+            navigate(`/dashboard?code=${code}`)
           }, 1500)
         } else if (error) {
           // Handle error from Instagram
@@ -76,7 +76,7 @@ const InstagramCallback = () => {
               Authentication Successful
             </h2>
             <p className="text-gray-600">
-              You have successfully connected your Instagram account. Redirecting...
+              You have successfully connected your Instagram account. Redirecting to dashboard...
             </p>
           </>
         )}

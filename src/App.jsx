@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import InstagramPage from './pages/InstagramPage'
 import InstagramCallback from './components/InstagramCallback'
 import InstagramTokenTest from './pages/InstagramTokenTest'
+import InstagramDashboard from './pages/InstagramDashboard'
 import './App.css'
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
           <Route path="/" element={<InstagramPage />} />
           <Route path="/auth/instagram/callback" element={<InstagramCallback />} />
           <Route path="/token-test" element={<InstagramTokenTest />} />
+          <Route path="/dashboard" element={<InstagramDashboard />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

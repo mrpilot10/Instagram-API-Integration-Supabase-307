@@ -20,6 +20,7 @@ export const useInstagram = () => {
       if (!authData.success) {
         throw new Error('Authentication failed')
       }
+
       console.log('✅ Authentication successful:', authData.user.username)
 
       // Save token info to localStorage
@@ -74,7 +75,6 @@ export const useInstagram = () => {
         return tokenInfo
       }
     }
-
     return tokenInfo
   }
 

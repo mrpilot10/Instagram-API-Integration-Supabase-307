@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useInstagram } from '../hooks/useInstagram'
 import InstagramLogin from '../components/InstagramLogin'
-import UserProfile from '../components/UserProfile'
-import PostsGrid from '../components/PostsGrid'
 import SafeIcon from '../common/SafeIcon'
 import * as FiIcons from 'react-icons/fi'
 import { REDIRECT_URI } from '../services/instagramApi'
@@ -11,13 +10,17 @@ import { REDIRECT_URI } from '../services/instagramApi'
 const { FiAlertCircle, FiRefreshCw, FiInfo, FiWifi, FiWifiOff, FiCheckCircle } = FiIcons
 
 const InstagramPage = () => {
-  const { user, posts, loading, error, disconnect, loadUserData, handleAuthCallback } = useInstagram()
+  const { user, loading, error, handleAuthCallback } = useInstagram()
   const [showConfigInfo, setShowConfigInfo] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState('unknown')
+  const navigate = useNavigate()
 
-  const handleRefresh = async () => {
-    await loadUserData()
-  }
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard')
+    }
+  }, [user, navigate])
 
   // Check internet connection
   useEffect(() => {
@@ -53,7 +56,13 @@ const InstagramPage = () => {
     // Process the code if present (Instagram redirects here now)
     if (code) {
       console.log('Instagram authorization code detected')
-      handleAuthCallback(code)
+      handleAuthCallback(code).then(() => {
+        // Navigate to dashboard on successful auth
+        navigate('/dashboard')
+      }).catch(err => {
+        console.error('Failed to process auth code:', err)
+      })
+      
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname)
     } else if (error) {
@@ -61,7 +70,7 @@ const InstagramPage = () => {
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname)
     }
-  }, [handleAuthCallback])
+  }, [handleAuthCallback, navigate])
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -166,7 +175,8 @@ const InstagramPage = () => {
                         <li>Go to <a href="https://developers.facebook.com/" target="_blank" rel="noopener noreferrer" className="underline">Facebook for Developers</a></li>
                         <li>Navigate to your app dashboard</li>
                         <li>Go to Instagram and then Basic Display (or create Instagram Login product)</li>
-                        <li>Under Valid OAuth Redirect URIs, add:
+                        <li>
+                          Under Valid OAuth Redirect URIs, add:
                           <div className="mt-1 p-2 bg-blue-100 rounded font-mono text-xs break-all">
                             {window.location.origin}
                           </div>
@@ -195,34 +205,6 @@ const InstagramPage = () => {
         {!user && !loading && (
           <div className="flex justify-center">
             <InstagramLogin loading={loading} />
-          </div>
-        )}
-
-        {user && (
-          <div className="max-w-4xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                {connectionStatus === 'online' && (
-                  <div className="flex items-center text-sm text-green-600">
-                    <SafeIcon icon={FiWifi} className="mr-1" />
-                    <span>Connected</span>
-                  </div>
-                )}
-              </div>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleRefresh}
-                disabled={loading}
-                className="flex items-center space-x-2 px-4 py-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50"
-              >
-                <SafeIcon icon={FiRefreshCw} className={`text-gray-600 ${loading ? 'animate-spin' : ''}`} />
-                <span className="text-gray-700">Refresh</span>
-              </motion.button>
-            </div>
-
-            <UserProfile user={user} onDisconnect={disconnect} />
-            <PostsGrid posts={posts} />
           </div>
         )}
       </div>

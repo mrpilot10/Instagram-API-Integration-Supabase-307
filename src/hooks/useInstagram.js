@@ -7,7 +7,7 @@ export const useInstagram = () => {
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-
+  
   // Handle auth callback with server-side token exchange
   const handleAuthCallback = async (code) => {
     try {
@@ -31,7 +31,6 @@ export const useInstagram = () => {
         expires_at: authData.token.expires_at,
         user_id: authData.token.user_id
       }
-      
       localStorage.setItem('instagram_token_info', JSON.stringify(tokenInfo))
       
       // Set state with user data and posts
@@ -52,7 +51,7 @@ export const useInstagram = () => {
       setLoading(false)
     }
   }
-
+  
   // Check and refresh token if needed
   const checkTokenExpiration = async (tokenInfo) => {
     if (!tokenInfo) return null
@@ -90,7 +89,7 @@ export const useInstagram = () => {
       return tokenInfo
     }
   }
-
+  
   // Load user data from Supabase or localStorage
   const loadUserData = async () => {
     const tokenInfoStr = localStorage.getItem('instagram_token_info')
@@ -153,7 +152,7 @@ export const useInstagram = () => {
       setLoading(false)
     }
   }
-
+  
   // Disconnect from Instagram
   const disconnect = () => {
     localStorage.removeItem('instagram_token_info')
@@ -161,12 +160,12 @@ export const useInstagram = () => {
     setPosts([])
     setError(null)
   }
-
+  
   // Load user data on mount
   useEffect(() => {
     loadUserData()
   }, [])
-
+  
   // Handle URL callback on the main page, not in the callback component
   useEffect(() => {
     // Skip processing if we're on the callback page
@@ -186,7 +185,7 @@ export const useInstagram = () => {
       setError(`Instagram error: ${error}`)
     }
   }, [user])
-
+  
   return {
     user,
     posts,

@@ -1,7 +1,8 @@
 // Instagram API configuration - Updated with new scopes
 const INSTAGRAM_APP_ID = '1413379789860625'
 const INSTAGRAM_CLIENT_SECRET = 'e1be236ec20e1c5e154f094b09dbac84'
-export const REDIRECT_URI = window.location.origin + '/#/auth/instagram/callback'
+// Fixed redirect URI to match exactly what's specified
+export const REDIRECT_URI = 'https://instagram-api-integration-supabase.vercel.app/auth/instagram/callback'
 const INSTAGRAM_AUTH_URL = 'https://api.instagram.com/oauth/authorize'
 
 // Log the configuration for debugging

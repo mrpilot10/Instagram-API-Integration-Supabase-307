@@ -11,7 +11,7 @@ const InstagramCallback = () => {
   const [error, setError] = useState(null)
   const navigate = useNavigate()
   const { handleAuthCallback } = useInstagram()
-  
+
   useEffect(() => {
     const processCallback = async () => {
       try {
@@ -19,7 +19,7 @@ const InstagramCallback = () => {
         const params = new URLSearchParams(window.location.search || window.location.hash.replace('#', '?'))
         const code = params.get('code')
         const error = params.get('error')
-        
+
         if (code) {
           // Successfully received auth code
           console.log('✅ Instagram Authorization Code:', code.substring(0, 10) + '...')
@@ -30,8 +30,10 @@ const InstagramCallback = () => {
           
           if (result && result.success) {
             setStatus('success')
+            
             // Redirect to dashboard after short delay
             setTimeout(() => {
+              // Redirect to dashboard page
               navigate('/dashboard')
             }, 1500)
           } else {
@@ -42,6 +44,7 @@ const InstagramCallback = () => {
           console.error('❌ Instagram error:', error)
           setStatus('error')
           setError(error)
+          
           setTimeout(() => {
             navigate('/')
           }, 3000)
@@ -50,6 +53,7 @@ const InstagramCallback = () => {
           console.error('❌ No code or error parameter found')
           setStatus('error')
           setError('No authorization code received')
+          
           setTimeout(() => {
             navigate('/')
           }, 3000)
@@ -58,15 +62,16 @@ const InstagramCallback = () => {
         console.error('❌ Callback processing error:', err)
         setStatus('error')
         setError(err.message)
+        
         setTimeout(() => {
           navigate('/')
         }, 3000)
       }
     }
-    
+
     processCallback()
   }, [navigate, handleAuthCallback])
-  
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center max-w-md w-full bg-white p-8 rounded-2xl shadow-xl">
@@ -83,7 +88,7 @@ const InstagramCallback = () => {
             </p>
           </>
         )}
-        
+
         {status === 'success' && (
           <>
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -97,7 +102,7 @@ const InstagramCallback = () => {
             </p>
           </>
         )}
-        
+
         {status === 'error' && (
           <>
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">

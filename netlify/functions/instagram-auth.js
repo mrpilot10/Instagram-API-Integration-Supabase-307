@@ -4,6 +4,7 @@ const fetch = require('node-fetch')
 // Instagram App Configuration - Updated for new scopes
 const INSTAGRAM_CLIENT_ID = '1413379789860625'
 const INSTAGRAM_CLIENT_SECRET = 'e1be236ec20e1c5e154f094b09dbac84'
+// Fixed redirect URI to match exactly what's specified
 const INSTAGRAM_REDIRECT_URI = 'https://instagram-api-integration-supabase.vercel.app/auth/instagram/callback'
 
 // Supabase Configuration
@@ -121,6 +122,7 @@ exports.handler = async (event, context) => {
     
     console.log('📝 Processing Instagram auth with code:', code.substring(0, 10) + '...')
     console.log('🔄 Using NEW Instagram Business API scopes')
+    console.log('🔄 Using redirect URI:', INSTAGRAM_REDIRECT_URI)
     
     // ✅ UPDATED: Exchange code for short-lived access token using Instagram Business API
     console.log('🔄 Exchanging code for token...')

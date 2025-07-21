@@ -1,175 +1,165 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import SafeIcon from '../common/SafeIcon'
-import * as FiIcons from 'react-icons/fi'
-import { useInstagram } from '../hooks/useInstagram'
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import SafeIcon from '../common/SafeIcon';
+import * as FiIcons from 'react-icons/fi';
+import { useInstagram } from '../hooks/useInstagram';
 
-const { FiAlertCircle, FiCheck, FiLoader } = FiIcons
+const { FiLoader, FiCheckCircle, FiAlertCircle, FiArrowRight } = FiIcons;
 
 const InstagramCallback = () => {
-  const [status, setStatus] = useState('processing')
-  const [error, setError] = useState(null)
-  const [debugInfo, setDebugInfo] = useState({})
-  const navigate = useNavigate()
-  const { handleAuthCallback } = useInstagram()
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { handleAuthCallback } = useInstagram();
+  
+  const [status, setStatus] = useState('processing'); // processing, success, error
+  const [error, setError] = useState(null);
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
     const processCallback = async () => {
       try {
-        // Get the full URL for debugging
-        const fullUrl = window.location.href
-        console.log('📍 Full callback URL:', fullUrl)
-        
-        // Handle both regular params and hash fragment
-        let params;
-        
-        // First try the search params
-        params = new URLSearchParams(window.location.search)
-        let code = params.get('code')
-        let errorParam = params.get('error')
-        
-        // If code is not in search params, check if it's after a hash
-        if (!code && window.location.hash) {
-          const hashParams = new URLSearchParams(window.location.hash.substring(1))
-          code = hashParams.get('code')
-          errorParam = hashParams.get('error')
-          
-          // If still no code, try treating the entire hash as a query string
-          if (!code && window.location.hash.includes('?')) {
-            const hashWithQuery = window.location.hash.substring(window.location.hash.indexOf('?'))
-            params = new URLSearchParams(hashWithQuery)
-            code = params.get('code')
-            errorParam = params.get('error')
-          }
+        // Extract code and state from URL parameters
+        const urlParams = new URLSearchParams(location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const error = urlParams.get('error');
+
+        console.log('🔄 Processing Instagram callback...');
+        console.log('Code:', code ? code.substring(0, 10) + '...' : 'None');
+        console.log('State:', state);
+        console.log('Error:', error);
+
+        // Check for OAuth errors
+        if (error) {
+          throw new Error(`Instagram OAuth error: ${error}`);
         }
-        
-        // Store debug info
-        setDebugInfo({
-          fullUrl,
-          search: window.location.search,
-          hash: window.location.hash,
-          code: code ? `${code.substring(0, 10)}...` : null
-        })
-        
-        console.log('🔍 Debug info:', {
-          url: window.location.href,
-          search: window.location.search,
-          hash: window.location.hash,
-          code: code ? `${code.substring(0, 10)}...` : null
-        })
-        
-        if (code) {
-          // Successfully received auth code
-          console.log('✅ Instagram Authorization Code:', code.substring(0, 10) + '...')
+
+        // Check for authorization code
+        if (!code) {
+          throw new Error('No authorization code received from Instagram');
+        }
+
+        // Exchange code for token and user data
+        setStatus('processing');
+        const result = await handleAuthCallback(code);
+
+        if (result && result.success) {
+          setStatus('success');
+          setUserData(result.user);
           
-          // Exchange code for token using our hook
-          setStatus('exchanging')
-          const result = await handleAuthCallback(code)
+          console.log('✅ Instagram authentication successful');
           
-          if (result && result.success) {
-            setStatus('success')
-            
-            // Redirect to dashboard after short delay
-            setTimeout(() => {
-              navigate('/dashboard')
-            }, 1500)
-          } else {
-            throw new Error('Authentication failed')
-          }
-        } else if (errorParam) {
-          // Handle error from Instagram
-          console.error('❌ Instagram error:', errorParam)
-          setStatus('error')
-          setError(errorParam)
-          
+          // Redirect to onboarding after short delay
           setTimeout(() => {
-            navigate('/')
-          }, 3000)
+            navigate('/onboarding');
+          }, 2000);
         } else {
-          // No code or error found
-          console.error('❌ No code or error parameter found')
-          setStatus('error')
-          setError('No authorization code received')
-          
-          setTimeout(() => {
-            navigate('/')
-          }, 3000)
+          throw new Error('Authentication failed - no success response');
         }
+
       } catch (err) {
-        console.error('❌ Callback processing error:', err)
-        setStatus('error')
-        setError(err.message)
+        console.error('❌ Instagram callback error:', err);
+        setStatus('error');
+        setError(err.message || 'Authentication failed');
         
+        // Redirect to home page after error delay
         setTimeout(() => {
-          navigate('/')
-        }, 3000)
+          navigate('/');
+        }, 5000);
       }
-    }
+    };
 
-    processCallback()
-  }, [navigate, handleAuthCallback])
+    processCallback();
+  }, [location.search, navigate, handleAuthCallback]);
 
+  // Processing state
+  if (status === 'processing') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center bg-white p-8 rounded-2xl shadow-xl max-w-md w-full"
+        >
+          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Connecting Instagram...
+          </h2>
+          <p className="text-gray-600">
+            Please wait while we process your Instagram authentication
+          </p>
+          <div className="mt-4 text-sm text-gray-500">
+            This may take a few moments
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Success state
+  if (status === 'success') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center bg-white p-8 rounded-2xl shadow-xl max-w-md w-full"
+        >
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <SafeIcon icon={FiCheckCircle} className="text-green-500 text-3xl" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Instagram Connected!
+          </h2>
+          {userData && (
+            <p className="text-gray-600 mb-4">
+              Welcome, @{userData.username}!
+            </p>
+          )}
+          <p className="text-gray-600 mb-6">
+            Redirecting you to complete your profile setup...
+          </p>
+          <div className="flex items-center justify-center text-purple-600">
+            <SafeIcon icon={FiArrowRight} className="mr-2" />
+            <span className="text-sm">Setting up your account</span>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Error state
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center max-w-md w-full bg-white p-8 rounded-2xl shadow-xl">
-        {(status === 'processing' || status === 'exchanging') && (
-          <>
-            <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">
-              {status === 'processing' ? 'Processing Instagram Login...' : 'Exchanging Authorization Code...'}
-            </h2>
-            <p className="text-gray-600 mb-4">
-              {status === 'processing' 
-                ? 'Please wait while we process your authentication request.' 
-                : 'Connecting your Instagram account to our application...'}
-            </p>
-            <div className="flex justify-center">
-              <SafeIcon icon={FiLoader} className="text-purple-500 animate-spin text-xl" />
-            </div>
-          </>
-        )}
-
-        {status === 'success' && (
-          <>
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <SafeIcon icon={FiCheck} className="text-green-500 text-3xl" />
-            </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">
-              Authentication Successful
-            </h2>
-            <p className="text-gray-600">
-              You have successfully connected your Instagram account. Redirecting to dashboard...
-            </p>
-          </>
-        )}
-
-        {status === 'error' && (
-          <>
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <SafeIcon icon={FiAlertCircle} className="text-red-500 text-3xl" />
-            </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">
-              Authentication Failed
-            </h2>
-            <p className="text-red-600 mb-3">
-              {error || 'An error occurred during Instagram authentication'}
-            </p>
-            <p className="text-gray-600 mb-6">
-              Redirecting you back to the main page...
-            </p>
-            
-            {/* Debug information for troubleshooting */}
-            <div className="mt-4 text-left text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
-              <p className="font-semibold mb-1">Debug Information:</p>
-              <pre className="overflow-auto max-h-24 whitespace-pre-wrap break-all">
-                {JSON.stringify(debugInfo, null, 2)}
-              </pre>
-            </div>
-          </>
-        )}
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center bg-white p-8 rounded-2xl shadow-xl max-w-md w-full"
+      >
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <SafeIcon icon={FiAlertCircle} className="text-red-500 text-3xl" />
+        </div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          Connection Failed
+        </h2>
+        <p className="text-red-600 mb-6">
+          {error || 'Failed to connect your Instagram account'}
+        </p>
+        <div className="space-y-3">
+          <button
+            onClick={() => navigate('/')}
+            className="w-full px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+          >
+            Try Again
+          </button>
+          <p className="text-xs text-gray-500">
+            Redirecting automatically in a few seconds...
+          </p>
+        </div>
+      </motion.div>
     </div>
-  )
-}
+  );
+};
 
-export default InstagramCallback
+export default InstagramCallback;

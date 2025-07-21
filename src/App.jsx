@@ -4,6 +4,8 @@ import InstagramPage from './pages/InstagramPage'
 import UserDetails from './pages/UserDetails'
 import InstagramCallback from './components/InstagramCallback'
 import InstagramDashboard from './pages/InstagramDashboard'
+import OnboardingPage from './pages/OnboardingPage'
+import OnboardingSuccessPage from './pages/OnboardingSuccessPage'
 import './App.css'
 
 function App() {
@@ -16,6 +18,8 @@ function App() {
           <Route path="/auth/instagram/callback" element={<InstagramCallback />} />
           <Route path="/callback" element={<InstagramCallback />} />
           <Route path="/dashboard" element={<InstagramDashboard />} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/onboarding/success" element={<OnboardingSuccessPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

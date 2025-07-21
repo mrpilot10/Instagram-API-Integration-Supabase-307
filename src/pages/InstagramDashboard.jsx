@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { format } from 'date-fns'
@@ -7,39 +7,31 @@ import * as FiIcons from 'react-icons/fi'
 import { useInstagram } from '../hooks/useInstagram'
 
 const { 
-  FiUser, FiImage, FiVideo, FiHeart, FiMessageCircle, 
-  FiCalendar, FiExternalLink, FiRefreshCw, FiLogOut,
-  FiCamera, FiUsers, FiUserPlus, FiAward, FiInfo,
-  FiAlertCircle, FiWifi, FiWifiOff
+  FiUser, FiImage, FiVideo, FiHeart, FiMessageCircle, FiCalendar, 
+  FiExternalLink, FiRefreshCw, FiLogOut, FiCamera, FiUsers, 
+  FiUserPlus, FiAward, FiAlertCircle, FiInfo
 } = FiIcons
 
 const InstagramDashboard = () => {
-  const { 
-    user, 
-    posts, 
-    loading, 
-    error, 
-    disconnect, 
-    loadUserData 
-  } = useInstagram()
   const navigate = useNavigate()
-
-  // If no user is logged in, redirect to main page
+  const { user, posts, loading, error, disconnect, loadUserData } = useInstagram()
+  
   useEffect(() => {
-    if (!loading && !user) {
+    // If not loading and no user/error, redirect to home
+    if (!loading && !user && !error) {
       navigate('/')
     }
-  }, [user, loading, navigate])
-
-  const handleRefresh = async () => {
-    await loadUserData()
+  }, [loading, user, error, navigate])
+  
+  const handleRefresh = () => {
+    loadUserData()
   }
-
+  
   const handleDisconnect = () => {
     disconnect()
     navigate('/')
   }
-
+  
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -55,7 +47,7 @@ const InstagramDashboard = () => {
       </div>
     )
   }
-
+  
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -93,12 +85,36 @@ const InstagramDashboard = () => {
       </div>
     )
   }
-
+  
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md w-full bg-white p-8 rounded-2xl shadow-xl">
+          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <SafeIcon icon={FiAlertCircle} className="text-yellow-500 text-3xl" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-3">
+            No Account Connected
+          </h2>
+          <p className="text-gray-600 mb-6">
+            You need to connect your Instagram account to view this page.
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+          >
+            Connect Instagram
+          </button>
+        </div>
+      </div>
+    )
+  }
+  
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8 flex justify-between items-center"
@@ -125,19 +141,19 @@ const InstagramDashboard = () => {
             </motion.button>
           </div>
         </motion.div>
-
+        
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Column */}
           <div className="lg:col-span-4 space-y-8">
             {/* User Profile */}
-            <UserProfileCard user={user} />
+            <UserProfile user={user} onDisconnect={handleDisconnect} />
             
             {/* Account Stats */}
             <StatsCard user={user} posts={posts} />
             
             {/* Connection Info */}
-            <ConnectionInfoCard />
+            <ConnectionInfo user={user} />
           </div>
           
           {/* Right Column - Posts Grid */}
@@ -151,64 +167,78 @@ const InstagramDashboard = () => {
 }
 
 // User Profile Component
-const UserProfileCard = ({ user }) => {
-  if (!user) return null
-
+const UserProfile = ({ user, onDisconnect }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }} 
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-2xl shadow-lg p-6"
+      className="bg-white rounded-2xl shadow-lg p-6 mb-8"
     >
-      <div className="flex items-center space-x-4 mb-6">
-        {user.profile_picture_url ? (
-          <img 
-            src={user.profile_picture_url} 
-            alt={user.username} 
-            className="w-20 h-20 rounded-full object-cover border-4 border-purple-100"
-          />
-        ) : (
-          <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-            <SafeIcon icon={FiUser} className="text-white text-2xl" />
-          </div>
-        )}
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">@{user.username}</h2>
-          {user.name && <p className="text-gray-600">{user.name}</p>}
-          <div className="flex items-center mt-1 text-sm text-gray-500">
-            <SafeIcon icon={FiAward} className="text-purple-500 mr-1" />
-            <span className="capitalize">{user.account_type || 'Business'} Account</span>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-gray-900">Instagram Business Profile</h2>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onDisconnect}
+          className="flex items-center space-x-2 text-red-500 hover:text-red-600 transition-colors"
+        >
+          <SafeIcon icon={FiLogOut} className="text-sm" />
+          <span className="text-sm">Disconnect</span>
+        </motion.button>
+      </div>
+      
+      <div className="flex items-center space-x-6 mb-6">
+        <div className="flex-shrink-0">
+          {user.profile_picture_url ? (
+            <img 
+              src={user.profile_picture_url} 
+              alt={user.username} 
+              className="w-20 h-20 rounded-full object-cover border-4 border-gradient-to-r from-purple-500 to-pink-500" 
+            />
+          ) : (
+            <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+              <SafeIcon icon={FiUser} className="text-white text-2xl" />
+            </div>
+          )}
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          <h3 className="text-2xl font-bold text-gray-900 truncate">
+            @{user.username}
+          </h3>
+          {user.name && (
+            <p className="text-lg text-gray-700 truncate">{user.name}</p>
+          )}
+          <div className="flex items-center space-x-2 mt-1">
+            <SafeIcon icon={FiAward} className="text-purple-500 text-sm" />
+            <span className="text-sm text-gray-600 capitalize">
+              {user.account_type || 'Business'} Account
+            </span>
           </div>
         </div>
       </div>
       
       <div className="grid grid-cols-3 gap-4 text-center">
-        <div className="bg-purple-50 rounded-xl p-4">
-          <div className="flex flex-col items-center">
-            <SafeIcon icon={FiCamera} className="text-purple-500 mb-2" />
-            <span className="text-xl font-bold text-gray-900">
-              {user.media_count || 0}
-            </span>
-            <span className="text-sm text-gray-600">Posts</span>
-          </div>
+        <div className="flex flex-col items-center">
+          <SafeIcon icon={FiCamera} className="text-gray-500 mb-2" />
+          <span className="text-xl font-bold text-gray-900">
+            {user.media_count || 0}
+          </span>
+          <span className="text-sm text-gray-600">Posts</span>
         </div>
-        <div className="bg-purple-50 rounded-xl p-4">
-          <div className="flex flex-col items-center">
-            <SafeIcon icon={FiUsers} className="text-purple-500 mb-2" />
-            <span className="text-xl font-bold text-gray-900">
-              {user.followers_count ? user.followers_count.toLocaleString() : 0}
-            </span>
-            <span className="text-sm text-gray-600">Followers</span>
-          </div>
+        <div className="flex flex-col items-center">
+          <SafeIcon icon={FiUsers} className="text-gray-500 mb-2" />
+          <span className="text-xl font-bold text-gray-900">
+            {user.followers_count ? user.followers_count.toLocaleString() : '--'}
+          </span>
+          <span className="text-sm text-gray-600">Followers</span>
         </div>
-        <div className="bg-purple-50 rounded-xl p-4">
-          <div className="flex flex-col items-center">
-            <SafeIcon icon={FiUserPlus} className="text-purple-500 mb-2" />
-            <span className="text-xl font-bold text-gray-900">
-              {user.follows_count ? user.follows_count.toLocaleString() : 0}
-            </span>
-            <span className="text-sm text-gray-600">Following</span>
-          </div>
+        <div className="flex flex-col items-center">
+          <SafeIcon icon={FiUserPlus} className="text-gray-500 mb-2" />
+          <span className="text-xl font-bold text-gray-900">
+            {user.follows_count ? user.follows_count.toLocaleString() : '--'}
+          </span>
+          <span className="text-sm text-gray-600">Following</span>
         </div>
       </div>
     </motion.div>
@@ -218,7 +248,7 @@ const UserProfileCard = ({ user }) => {
 // Stats Card Component
 const StatsCard = ({ user, posts }) => {
   if (!user) return null
-  
+
   // Calculate engagement rate
   const calculateEngagementRate = () => {
     if (!posts || posts.length === 0 || !user.followers_count) return 0
@@ -297,7 +327,9 @@ const StatsCard = ({ user, posts }) => {
 }
 
 // Connection Info Component
-const ConnectionInfoCard = () => {
+const ConnectionInfo = ({ user }) => {
+  if (!user) return null
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -311,17 +343,22 @@ const ConnectionInfoCard = () => {
       
       <div className="space-y-3 text-sm">
         <div className="flex items-center text-green-600">
-          <SafeIcon icon={FiWifi} className="mr-2" />
+          <SafeIcon icon={FiIcons.FiCheck} className="mr-2" />
           <span>Connected to Instagram Business API</span>
         </div>
         
         <div className="flex items-center text-gray-600">
-          <SafeIcon icon={FiUsers} className="mr-2" />
+          <SafeIcon icon={FiIcons.FiDatabase} className="mr-2" />
           <span>Data stored in Supabase</span>
         </div>
         
+        <div className="flex items-center text-gray-600">
+          <SafeIcon icon={FiIcons.FiKey} className="mr-2" />
+          <span>Access token valid</span>
+        </div>
+        
         <p className="text-gray-500 text-xs mt-4">
-          Your Instagram access token is refreshed automatically to maintain connection.
+          Last updated: {format(new Date(user.updated_at || Date.now()), 'MMM d, yyyy h:mm a')}
         </p>
       </div>
     </motion.div>
@@ -340,12 +377,13 @@ const PostsGrid = ({ posts }) => {
         <SafeIcon icon={FiImage} className="text-gray-400 text-5xl mb-4 mx-auto" />
         <h3 className="text-xl font-semibold text-gray-900 mb-2">No posts found</h3>
         <p className="text-gray-600 max-w-md mx-auto">
-          Your Instagram posts will appear here once loaded. If you've just connected your account, try refreshing the data.
+          Your Instagram posts will appear here once loaded. If you've just connected your account,
+          try refreshing the data.
         </p>
       </motion.div>
     )
   }
-
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -360,7 +398,7 @@ const PostsGrid = ({ posts }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {posts.map((post, index) => (
           <motion.div
-            key={post.id}
+            key={post.instagram_id || post.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}

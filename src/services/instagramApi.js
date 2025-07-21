@@ -1,11 +1,15 @@
-// Instagram API configuration - Updated for Instagram Business API
+// Instagram API configuration - Real implementation
 const INSTAGRAM_APP_ID = '1413379789860625'
-export const REDIRECT_URI = 'https://instagram-api-integration-supabase.vercel.app/auth/instagram/callback'
-const INSTAGRAM_AUTH_URL = 'https://www.instagram.com/oauth/authorize'
-const INSTAGRAM_GRAPH_URL = 'https://graph.instagram.com'
+const INSTAGRAM_CLIENT_SECRET = 'e1be236ec20e1c5e154f094b09dbac84'
+export const REDIRECT_URI = window.location.origin + '/#/auth/instagram/callback'
+const INSTAGRAM_AUTH_URL = 'https://api.instagram.com/oauth/authorize'
 
 // Log the configuration for debugging
-console.log('Instagram Config:', { INSTAGRAM_APP_ID, REDIRECT_URI, INSTAGRAM_AUTH_URL })
+console.log('Instagram Config:', {
+  INSTAGRAM_APP_ID,
+  REDIRECT_URI,
+  INSTAGRAM_AUTH_URL
+})
 
 // Store pre-auth state for callback handling
 export const setPreAuthState = (state) => {
@@ -31,52 +35,50 @@ const generateState = () => {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }
 
-// ✅ FIXED: Redirect to Instagram OAuth with correct Business API scopes
+// Real Instagram OAuth redirect
 export const redirectToInstagramAuth = (returnUrl = '/') => {
   const state = generateState()
   
   // Store state and return URL for callback
-  setPreAuthState({ state, returnUrl, timestamp: Date.now() })
+  setPreAuthState({
+    state,
+    returnUrl,
+    timestamp: Date.now()
+  })
   
+  // Build the Instagram authorization URL with proper scopes
   const params = new URLSearchParams({
     client_id: INSTAGRAM_APP_ID,
     redirect_uri: REDIRECT_URI,
-    scope: 'instagram_business_basic', // ✅ CORRECT: Use Instagram Business API scope
+    scope: 'user_profile,user_media',
     response_type: 'code',
     state: state
   })
   
-  const authUrl = `${INSTAGRAM_AUTH_URL}?${params}`
-  console.log('🔗 Redirecting to Instagram Business auth:', authUrl)
-  window.location.href = authUrl
+  // Redirect to Instagram for authorization
+  window.location.href = `${INSTAGRAM_AUTH_URL}?${params.toString()}`
 }
 
-// Exchange authorization code for access token
+// Real token exchange function - uses serverless function
 export const exchangeCodeForToken = async (code) => {
   try {
-    console.log('🔄 Exchanging code for token via server function...')
+    console.log('🔄 Exchanging code for token:', code.substring(0, 10) + '...')
     
-    // Call our serverless function
-    // Use a relative URL that works in both development and production
+    // Call our serverless function to exchange the code for a token
     const response = await fetch('/.netlify/functions/instagram-auth', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code })
     })
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      console.error('Server response error:', response.status, errorData)
-      throw new Error(errorData.message || errorData.error || `Server error: ${response.status}`)
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to exchange code for token')
     }
     
-    const data = await response.json()
-    console.log('✅ Server authentication successful')
-    return data
+    return await response.json()
   } catch (error) {
-    console.error('❌ Token exchange error:', error)
+    console.error('Error exchanging code for token:', error)
     throw error
   }
 }
@@ -84,12 +86,15 @@ export const exchangeCodeForToken = async (code) => {
 // Validate access token
 export const validateToken = async (accessToken) => {
   try {
-    const params = new URLSearchParams({ access_token: accessToken })
-    const response = await fetch(`${INSTAGRAM_GRAPH_URL}/me?${params}`)
+    console.log('🔄 Validating token:', accessToken.substring(0, 10) + '...')
+    
+    // Simple validation by trying to fetch user data
+    const response = await fetch(`https://graph.instagram.com/me?fields=id&access_token=${accessToken}`)
     const data = await response.json()
+    
     return !data.error
   } catch (error) {
-    console.error('Token validation error:', error)
+    console.error('Error validating token:', error)
     return false
   }
 }
@@ -97,76 +102,23 @@ export const validateToken = async (accessToken) => {
 // Refresh access token
 export const refreshAccessToken = async (accessToken) => {
   try {
-    console.log('🔄 Refreshing access token...')
+    console.log('🔄 Refreshing access token:', accessToken.substring(0, 10) + '...')
     
-    // Call our serverless function
+    // Call our serverless function to refresh the token
     const response = await fetch('/.netlify/functions/instagram-refresh', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ access_token: accessToken })
     })
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || errorData.error || 'Token refresh failed')
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to refresh token')
     }
     
-    const data = await response.json()
-    console.log('✅ Token refresh successful')
-    return data
+    return await response.json()
   } catch (error) {
-    console.error('❌ Token refresh error:', error)
-    throw error
-  }
-}
-
-// Get user media directly from Instagram (fallback only)
-export const getUserMedia = async (accessToken, limit = 25) => {
-  try {
-    const params = new URLSearchParams({
-      fields: 'id,caption,media_type,media_url,thumbnail_url,timestamp,permalink',
-      access_token: accessToken,
-      limit: limit.toString()
-    })
-    
-    const response = await fetch(`${INSTAGRAM_GRAPH_URL}/me/media?${params}`)
-    const data = await response.json()
-    
-    if (data.error) {
-      throw new Error(data.error.message || data.error)
-    }
-    
-    return data
-  } catch (error) {
-    console.error('Get user media error:', error)
-    throw error
-  }
-}
-
-// Get user profile directly from Instagram (fallback only)
-export const getUserProfile = async (accessToken) => {
-  try {
-    const fields = [
-      'id', 'username', 'account_type', 'media_count'
-    ].join(',')
-    
-    const params = new URLSearchParams({
-      fields,
-      access_token: accessToken
-    })
-    
-    const response = await fetch(`${INSTAGRAM_GRAPH_URL}/me?${params}`)
-    const data = await response.json()
-    
-    if (data.error) {
-      throw new Error(data.error.message || data.error)
-    }
-    
-    return data
-  } catch (error) {
-    console.error('Get user profile error:', error)
+    console.error('Error refreshing token:', error)
     throw error
   }
 }

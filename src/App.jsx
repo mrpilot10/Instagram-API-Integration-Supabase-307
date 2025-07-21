@@ -2,6 +2,8 @@ import React from 'react'
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import InstagramPage from './pages/InstagramPage'
 import UserDetails from './pages/UserDetails'
+import InstagramCallback from './components/InstagramCallback'
+import InstagramDashboard from './pages/InstagramDashboard'
 import './App.css'
 
 function App() {
@@ -11,6 +13,8 @@ function App() {
         <Routes>
           <Route path="/" element={<InstagramPage />} />
           <Route path="/user-details" element={<UserDetails />} />
+          <Route path="/auth/instagram/callback" element={<InstagramCallback />} />
+          <Route path="/dashboard" element={<InstagramDashboard />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

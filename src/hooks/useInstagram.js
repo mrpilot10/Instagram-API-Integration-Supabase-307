@@ -17,8 +17,8 @@ export const useInstagram = () => {
 
       // Exchange code for tokens and user data via our serverless function
       const authData = await instagramApi.exchangeCodeForToken(code)
-      if (!authData.success) {
-        throw new Error('Authentication failed')
+      if (!authData || !authData.success) {
+        throw new Error(authData?.error || 'Authentication failed')
       }
 
       console.log('✅ Authentication successful:', authData.user.username)
@@ -51,31 +51,37 @@ export const useInstagram = () => {
   }
 
   const checkTokenExpiration = async (tokenInfo) => {
-    const expiresAt = new Date(tokenInfo.expires_at)
-    const now = new Date()
-    const daysUntilExpiry = (expiresAt - now) / (1000 * 60 * 60 * 24)
+    if (!tokenInfo) return null
+    
+    try {
+      const expiresAt = new Date(tokenInfo.expires_at)
+      const now = new Date()
+      const daysUntilExpiry = (expiresAt - now) / (1000 * 60 * 60 * 24)
 
-    // Refresh token if it expires in less than 7 days
-    if (daysUntilExpiry < 7) {
-      try {
-        const refreshedToken = await instagramApi.refreshAccessToken(tokenInfo.access_token)
-        if (!refreshedToken.success) {
-          throw new Error('Token refresh failed')
-        }
+      // Refresh token if it expires in less than 7 days
+      if (daysUntilExpiry < 7) {
+        try {
+          const refreshedToken = await instagramApi.refreshAccessToken(tokenInfo.access_token)
+          if (!refreshedToken || !refreshedToken.success) {
+            throw new Error('Token refresh failed')
+          }
 
-        const updatedTokenInfo = {
-          ...tokenInfo,
-          access_token: refreshedToken.access_token,
-          expires_at: refreshedToken.expires_at
+          const updatedTokenInfo = {
+            ...tokenInfo,
+            access_token: refreshedToken.access_token,
+            expires_at: refreshedToken.expires_at
+          }
+          localStorage.setItem('instagram_token_info', JSON.stringify(updatedTokenInfo))
+          return updatedTokenInfo
+        } catch (error) {
+          console.warn('Failed to refresh token:', error)
         }
-        localStorage.setItem('instagram_token_info', JSON.stringify(updatedTokenInfo))
-        return updatedTokenInfo
-      } catch (error) {
-        console.warn('Failed to refresh token:', error)
-        return tokenInfo
       }
+      return tokenInfo
+    } catch (err) {
+      console.error('Error checking token expiration:', err)
+      return tokenInfo
     }
-    return tokenInfo
   }
 
   const loadUserData = async () => {
@@ -86,11 +92,20 @@ export const useInstagram = () => {
       setLoading(true)
       setError(null)
 
-      let tokenInfo = JSON.parse(tokenInfoStr)
+      let tokenInfo
+      try {
+        tokenInfo = JSON.parse(tokenInfoStr)
+      } catch (e) {
+        throw new Error('Invalid token info in storage')
+      }
 
       // Check and refresh token if needed
       try {
         tokenInfo = await checkTokenExpiration(tokenInfo)
+        
+        if (!tokenInfo) {
+          throw new Error('No valid token info')
+        }
 
         // Validate token
         const isValid = await instagramApi.validateToken(tokenInfo.access_token)
@@ -159,7 +174,7 @@ export const useInstagram = () => {
       console.log('❌ Found error in URL:', error)
       setError(`Instagram error: ${error}`)
     }
-  }, [])
+  }, [user])
 
   return {
     user,

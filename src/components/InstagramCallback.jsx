@@ -4,7 +4,7 @@ import SafeIcon from '../common/SafeIcon'
 import * as FiIcons from 'react-icons/fi'
 import { exchangeCodeForToken } from '../services/instagramApi'
 
-const { FiAlertCircle, FiCheck, FiLoader } = FiIcons
+const { FiAlertCircle, FiCheck } = FiIcons
 
 const InstagramCallback = () => {
   const [status, setStatus] = useState('processing')
@@ -14,8 +14,8 @@ const InstagramCallback = () => {
   useEffect(() => {
     const processCallback = async () => {
       try {
-        // Get URL parameters
-        const params = new URLSearchParams(window.location.search)
+        // Get URL parameters - handle both hash and search parameters
+        const params = new URLSearchParams(window.location.search || window.location.hash.replace('#', '?'))
         const code = params.get('code')
         const error = params.get('error')
 

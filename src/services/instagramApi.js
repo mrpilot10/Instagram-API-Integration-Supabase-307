@@ -56,7 +56,8 @@ export const exchangeCodeForToken = async (code) => {
   try {
     console.log('🔄 Exchanging code for token via server function...')
     
-    // Call our Netlify serverless function
+    // Call our serverless function
+    // Use a relative URL that works in both development and production
     const response = await fetch('/.netlify/functions/instagram-auth', {
       method: 'POST',
       headers: {
@@ -65,11 +66,13 @@ export const exchangeCodeForToken = async (code) => {
       body: JSON.stringify({ code })
     })
     
-    const data = await response.json()
     if (!response.ok) {
-      throw new Error(data.message || data.error || 'Authentication failed')
+      const errorData = await response.json().catch(() => ({}))
+      console.error('Server response error:', response.status, errorData)
+      throw new Error(errorData.message || errorData.error || `Server error: ${response.status}`)
     }
     
+    const data = await response.json()
     console.log('✅ Server authentication successful')
     return data
   } catch (error) {
@@ -96,7 +99,7 @@ export const refreshAccessToken = async (accessToken) => {
   try {
     console.log('🔄 Refreshing access token...')
     
-    // Call our Netlify serverless function
+    // Call our serverless function
     const response = await fetch('/.netlify/functions/instagram-refresh', {
       method: 'POST',
       headers: {
@@ -105,11 +108,12 @@ export const refreshAccessToken = async (accessToken) => {
       body: JSON.stringify({ access_token: accessToken })
     })
     
-    const data = await response.json()
     if (!response.ok) {
-      throw new Error(data.message || data.error || 'Token refresh failed')
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || errorData.error || 'Token refresh failed')
     }
     
+    const data = await response.json()
     console.log('✅ Token refresh successful')
     return data
   } catch (error) {

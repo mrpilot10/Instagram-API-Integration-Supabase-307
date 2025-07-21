@@ -8,7 +8,7 @@ const { FiInstagram, FiUser, FiImage, FiUsers, FiMessageCircle } = FiIcons
 
 const InstagramLogin = ({ loading }) => {
   const handleConnect = () => {
-    console.log('🎯 Instagram Business Connect button clicked!')
+    console.log('🎯 Instagram Connect button clicked!')
     redirectToInstagramAuth()
   }
 
@@ -23,17 +23,17 @@ const InstagramLogin = ({ loading }) => {
           <SafeIcon icon={FiInstagram} className="text-white text-2xl" />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Connect Instagram Business
+          Connect Instagram
         </h1>
         <p className="text-gray-600">
-          Connect your Instagram Business or Creator account to manage your presence
+          Connect your Instagram account to manage your presence
         </p>
       </div>
 
       <div className="space-y-4 mb-8">
         <div className="flex items-center space-x-3 text-sm text-gray-600">
           <SafeIcon icon={FiUser} className="text-purple-500 flex-shrink-0" />
-          <span>Access your business profile information</span>
+          <span>Access your profile information</span>
         </div>
         <div className="flex items-center space-x-3 text-sm text-gray-600">
           <SafeIcon icon={FiImage} className="text-purple-500 flex-shrink-0" />
@@ -62,7 +62,7 @@ const InstagramLogin = ({ loading }) => {
           ) : (
             <>
               <SafeIcon icon={FiInstagram} className="text-xl" />
-              <span>Connect Instagram Business Account</span>
+              <span>Connect Instagram Account</span>
             </>
           )}
         </motion.button>
@@ -70,10 +70,10 @@ const InstagramLogin = ({ loading }) => {
 
       <div className="mt-6 text-center">
         <p className="text-xs text-gray-500">
-          ✅ Uses Instagram Business API with proper scopes
+          ✅ Uses Instagram API with proper permissions
         </p>
         <p className="text-xs text-gray-500 mt-1">
-          Requires Instagram Business or Creator account
+          Requires a valid Instagram account
         </p>
       </div>
     </motion.div>

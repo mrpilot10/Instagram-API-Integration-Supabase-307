@@ -1,6 +1,7 @@
 // Instagram API configuration - Updated with new scopes
 const INSTAGRAM_APP_ID = '1413379789860625'
 const INSTAGRAM_CLIENT_SECRET = 'e1be236ec20e1c5e154f094b09dbac84'
+
 // Fixed redirect URI to match exactly what's specified
 export const REDIRECT_URI = 'https://instagram-api-integration-supabase.vercel.app/auth/instagram/callback'
 const INSTAGRAM_AUTH_URL = 'https://api.instagram.com/oauth/authorize'
@@ -52,12 +53,12 @@ export const redirectToInstagramAuth = (returnUrl = '/') => {
     client_id: INSTAGRAM_APP_ID,
     redirect_uri: REDIRECT_URI,
     // ✅ UPDATED: Using new scopes that are not deprecated
-    scope: 'instagram_business_basic,instagram_business_content_publish,instagram_business_manage_messages,instagram_business_manage_comments',
+    scope: 'instagram_basic,instagram_content_publish,instagram_manage_comments,instagram_manage_insights',
     response_type: 'code',
     state: state
   })
   
-  console.log('🔄 Redirecting to Instagram with new scopes:', params.get('scope'))
+  console.log('🔄 Redirecting to Instagram with scopes:', params.get('scope'))
   
   // Redirect to Instagram for authorization
   window.location.href = `${INSTAGRAM_AUTH_URL}?${params.toString()}`
@@ -71,7 +72,9 @@ export const exchangeCodeForToken = async (code) => {
     // Call our serverless function to exchange the code for a token
     const response = await fetch('/.netlify/functions/instagram-auth', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ code })
     })
     
@@ -82,7 +85,6 @@ export const exchangeCodeForToken = async (code) => {
     
     const result = await response.json()
     console.log('✅ Token exchange successful for user:', result.user?.username)
-    
     return result
   } catch (error) {
     console.error('❌ Error exchanging code for token:', error)
@@ -117,7 +119,9 @@ export const refreshAccessToken = async (accessToken) => {
     // Call our serverless function to refresh the token
     const response = await fetch('/.netlify/functions/instagram-refresh', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ access_token: accessToken })
     })
     
@@ -144,7 +148,7 @@ export const getUserMedia = async (accessToken, limit = 25) => {
     // Enhanced fields available with new scopes
     const mediaFields = [
       'id',
-      'caption', 
+      'caption',
       'media_type',
       'media_url',
       'thumbnail_url',

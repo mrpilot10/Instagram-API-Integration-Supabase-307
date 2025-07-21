@@ -4,22 +4,22 @@ import SafeIcon from '../common/SafeIcon'
 import * as FiIcons from 'react-icons/fi'
 import { redirectToInstagramAuth } from '../services/instagramApi'
 
-const { FiInstagram, FiUser, FiImage, FiUsers, FiMessageCircle, FiEdit3, FiSettings } = FiIcons
+const { FiInstagram, FiUser, FiImage, FiUsers, FiMessageCircle, FiEdit3 } = FiIcons
 
 const InstagramPage = () => {
   const [loading, setLoading] = useState(false)
 
   const handleConnect = () => {
     setLoading(true)
-    console.log('🎯 Instagram Business Connect button clicked!')
-    console.log('✅ Using NEW Instagram Business API scopes')
+    console.log('🎯 Instagram Connect button clicked!')
+    console.log('✅ Using Instagram API scopes')
     redirectToInstagramAuth()
   }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }} 
-      animate={{ opacity: 1, y: 0 }} 
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
       className="max-w-md mx-auto bg-white rounded-2xl shadow-xl p-8 mt-12"
     >
       <div className="text-center mb-8">
@@ -27,17 +27,17 @@ const InstagramPage = () => {
           <SafeIcon icon={FiInstagram} className="text-white text-2xl" />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Connect Instagram Business
+          Connect Instagram
         </h1>
         <p className="text-gray-600">
-          Connect your Instagram Business or Creator account with enhanced permissions
+          Connect your Instagram account with enhanced permissions
         </p>
       </div>
 
       <div className="space-y-4 mb-8">
         <div className="flex items-center space-x-3 text-sm text-gray-600">
           <SafeIcon icon={FiUser} className="text-purple-500 flex-shrink-0" />
-          <span>Access your business profile and analytics</span>
+          <span>Access your profile and analytics</span>
         </div>
         <div className="flex items-center space-x-3 text-sm text-gray-600">
           <SafeIcon icon={FiImage} className="text-purple-500 flex-shrink-0" />
@@ -69,25 +69,25 @@ const InstagramPage = () => {
         ) : (
           <>
             <SafeIcon icon={FiInstagram} className="text-xl" />
-            <span>Connect Instagram Business Account</span>
+            <span>Connect Instagram Account</span>
           </>
         )}
       </motion.button>
-      
+
       <div className="mt-6 text-center space-y-2">
         <p className="text-xs text-green-600 font-medium">
-          ✅ Uses Latest Instagram Business API (2024)
+          ✅ Uses Instagram API (2024)
         </p>
         <p className="text-xs text-gray-500">
           Enhanced permissions for content management
         </p>
         <div className="bg-gray-50 rounded-lg p-3 mt-4">
-          <p className="text-xs text-gray-600 font-medium mb-2">New API Scopes:</p>
+          <p className="text-xs text-gray-600 font-medium mb-2">API Scopes:</p>
           <div className="space-y-1 text-xs text-gray-500">
-            <div>• instagram_business_basic</div>
-            <div>• instagram_business_content_publish</div>
-            <div>• instagram_business_manage_messages</div>
-            <div>• instagram_business_manage_comments</div>
+            <div>• instagram_basic</div>
+            <div>• instagram_content_publish</div>
+            <div>• instagram_manage_comments</div>
+            <div>• instagram_manage_insights</div>
           </div>
         </div>
       </div>

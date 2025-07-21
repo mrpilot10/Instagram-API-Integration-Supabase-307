@@ -13,7 +13,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: true,
   },
   server: {
     // Add proxy for Netlify functions

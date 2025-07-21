@@ -4,7 +4,7 @@ const fetch = require('node-fetch')
 // Instagram App Configuration
 const INSTAGRAM_CLIENT_ID = '1413379789860625'
 const INSTAGRAM_CLIENT_SECRET = 'e1be236ec20e1c5e154f094b09dbac84'
-const INSTAGRAM_REDIRECT_URI = 'https://dainty-tulumba-0611fc.netlify.app/auth/instagram/callback'
+const INSTAGRAM_REDIRECT_URI = 'https://instagram-api-integration-supabase.vercel.app/auth/instagram/callback'
 
 // Supabase Configuration
 const SUPABASE_URL = 'https://cshhunwykhbgbrnxdvkk.supabase.co'
@@ -32,10 +32,7 @@ async function saveUserToSupabase(profile, accessToken, tokenExpiresAt) {
 
     const { error } = await supabase
       .from('instagram_users_x7y9z2')
-      .upsert(userData, { 
-        onConflict: 'instagram_id',
-        ignoreDuplicates: false 
-      })
+      .upsert(userData, { onConflict: 'instagram_id', ignoreDuplicates: false })
 
     if (error) throw error
     return true
@@ -66,10 +63,7 @@ async function savePostsToSupabase(userId, posts) {
 
     const { error } = await supabase
       .from('instagram_posts_x7y9z2')
-      .upsert(postsData, {
-        onConflict: 'instagram_id',
-        ignoreDuplicates: false
-      })
+      .upsert(postsData, { onConflict: 'instagram_id', ignoreDuplicates: false })
 
     if (error) throw error
     return true
@@ -84,7 +78,7 @@ exports.handler = async (event, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'POST,OPTIONS',
   }
 
   // Handle preflight OPTIONS request
@@ -137,14 +131,14 @@ exports.handler = async (event, context) => {
     })
 
     const tokenData = await tokenResponse.json()
-
+    
     if (tokenData.error) {
       console.error('❌ Token exchange error:', tokenData)
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ 
-          error: 'Failed to exchange code for token', 
+        body: JSON.stringify({
+          error: 'Failed to exchange code for token',
           details: tokenData.error_description || tokenData.error
         })
       }
@@ -169,7 +163,7 @@ exports.handler = async (event, context) => {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           error: 'Failed to get long-lived token',
           details: longLivedData.error.message || longLivedData.error
         })
@@ -178,7 +172,7 @@ exports.handler = async (event, context) => {
 
     console.log('✅ Received long-lived token with expiry:', longLivedData.expires_in)
     const accessToken = longLivedData.access_token
-    
+
     // Calculate token expiration date (60 days from now)
     const tokenExpiresAt = new Date()
     tokenExpiresAt.setSeconds(tokenExpiresAt.getSeconds() + longLivedData.expires_in)
@@ -186,11 +180,10 @@ exports.handler = async (event, context) => {
     // Step 3: Get user profile
     console.log('🔄 Fetching user profile...')
     const fields = [
-      'id', 'username', 'name', 'account_type', 
-      'media_count', 'profile_picture_url', 
-      'followers_count', 'follows_count'
+      'id', 'username', 'name', 'account_type', 'media_count',
+      'profile_picture_url', 'followers_count', 'follows_count'
     ].join(',')
-    
+
     const profileParams = new URLSearchParams({
       fields,
       access_token: accessToken
@@ -204,7 +197,7 @@ exports.handler = async (event, context) => {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           error: 'Failed to fetch user profile',
           details: profile.error.message || profile.error
         })
@@ -235,7 +228,6 @@ exports.handler = async (event, context) => {
     // Step 5: Save to Supabase
     console.log('🔄 Saving data to Supabase...')
     await saveUserToSupabase(profile, accessToken, tokenExpiresAt.toISOString())
-    
     if (media.data && media.data.length > 0) {
       await savePostsToSupabase(profile.id, media.data)
     }
@@ -255,14 +247,15 @@ exports.handler = async (event, context) => {
         }
       })
     }
+
   } catch (error) {
     console.error('❌ Instagram auth error:', error)
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         error: 'Authentication failed',
-        message: error.message 
+        message: error.message
       })
     }
   }

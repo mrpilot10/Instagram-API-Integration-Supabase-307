@@ -47,22 +47,17 @@ const InstagramPage = () => {
     const params = new URLSearchParams(window.location.search)
     const code = params.get('code')
     const error = params.get('error')
-    
-    console.log('URL Params:', { 
-      code: code ? 'present' : 'not found', 
-      error
-    })
-    
+
+    console.log('URL Params:', { code: code ? 'present' : 'not found', error })
+
     // Process the code if present (Instagram redirects here now)
     if (code) {
       console.log('Instagram authorization code detected')
       handleAuthCallback(code)
-      
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname)
     } else if (error) {
       console.log('Instagram error detected:', error)
-      
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname)
     }
@@ -71,7 +66,7 @@ const InstagramPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
@@ -86,7 +81,7 @@ const InstagramPage = () => {
 
         {/* Connection Status */}
         {connectionStatus === 'offline' && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="max-w-2xl mx-auto mb-8 bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-center space-x-3"
@@ -102,7 +97,7 @@ const InstagramPage = () => {
         )}
 
         {error && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="max-w-2xl mx-auto mb-8 bg-red-50 border border-red-200 rounded-xl p-4 flex items-center space-x-3"
@@ -122,7 +117,7 @@ const InstagramPage = () => {
                 </div>
               )}
             </div>
-            <button 
+            <button
               onClick={() => window.location.reload()}
               className="text-red-600 hover:text-red-700 transition-colors"
             >
@@ -132,7 +127,7 @@ const InstagramPage = () => {
         )}
 
         {!user && !loading && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="max-w-2xl mx-auto mb-8"
@@ -145,7 +140,7 @@ const InstagramPage = () => {
                   <p className="text-blue-700 text-sm mt-1">
                     To use Instagram integration, ensure your Instagram app is properly configured:
                   </p>
-                  <button 
+                  <button
                     onClick={() => setShowConfigInfo(!showConfigInfo)}
                     className="text-blue-600 text-sm mt-1 hover:text-blue-800 underline"
                   >
@@ -206,14 +201,11 @@ const InstagramPage = () => {
                 disabled={loading}
                 className="flex items-center space-x-2 px-4 py-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50"
               >
-                <SafeIcon 
-                  icon={FiRefreshCw} 
-                  className={`text-gray-600 ${loading ? 'animate-spin' : ''}`} 
-                />
+                <SafeIcon icon={FiRefreshCw} className={`text-gray-600 ${loading ? 'animate-spin' : ''}`} />
                 <span className="text-gray-700">Refresh</span>
               </motion.button>
             </div>
-            
+
             <UserProfile user={user} onDisconnect={disconnect} />
             <PostsGrid posts={posts} />
           </div>

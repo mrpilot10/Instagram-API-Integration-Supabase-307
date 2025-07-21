@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SafeIcon from '../common/SafeIcon'
 import * as FiIcons from 'react-icons/fi'
-import { verifyAuthState, getPreAuthState } from '../services/instagramApi'
 
 const { FiAlertCircle, FiCheck, FiLoader } = FiIcons
 
@@ -12,88 +11,38 @@ const InstagramCallback = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    console.log('🔄 Instagram Callback Component Mounted')
-    console.log('Current URL:', window.location.href)
-    console.log('Search params:', window.location.search)
-    console.log('Hash:', window.location.hash)
-
-    // ✅ WORKING: Handle callback parameters
     const processCallback = async () => {
       try {
         // Get URL parameters
-        let params
-        try {
-          // Handle both direct URL params and hash fragment params
-          if (window.location.search) {
-            params = new URLSearchParams(window.location.search)
-            console.log('Using search params')
-          } else if (window.location.hash && window.location.hash.includes('?')) {
-            params = new URLSearchParams(window.location.hash.substring(window.location.hash.indexOf('?')))
-            console.log('Using hash params')
-          } else {
-            params = new URLSearchParams()
-            console.log('No params found')
-          }
-        } catch (e) {
-          console.error('Error parsing URL parameters:', e)
-          params = new URLSearchParams()
-        }
-
+        const params = new URLSearchParams(window.location.search)
         const code = params.get('code')
         const error = params.get('error')
-        const state = params.get('state')
-        const errorReason = params.get('error_reason')
-        const errorDescription = params.get('error_description')
 
-        console.log('📋 Callback Parameters:', {
-          code: code ? `${code.substring(0, 10)}...` : null,
-          error,
-          state: state ? `${state.substring(0, 10)}...` : null,
-          errorReason,
-          errorDescription
-        })
-
-        // Get the pre-auth state if available
-        const preAuthState = getPreAuthState()
-        const returnUrl = preAuthState?.returnUrl || '/'
-
-        console.log('🔙 Return URL:', returnUrl)
-
-        // Handle the authentication result
         if (code) {
-          console.log('✅ Authorization code received, processing...')
+          // Successfully received auth code
           setStatus('success')
-          
-          // ✅ WORKING: Pass code back to main page for processing
+          // Redirect back to main page with code
           setTimeout(() => {
-            navigate(`${returnUrl}?code=${code}`)
+            navigate(`/?code=${code}`)
           }, 1500)
         } else if (error) {
-          console.error('❌ Instagram returned error:', { error, errorReason, errorDescription })
-          
-          // Show error and redirect after a delay
+          // Handle error from Instagram
           setStatus('error')
-          setError(errorDescription || error || 'Instagram authentication failed')
-          
+          setError(error)
           setTimeout(() => {
-            navigate(`${returnUrl}?error=${error}`)
+            navigate('/')
           }, 3000)
         } else {
-          console.error('❌ No code or error found in callback')
-          
           // No code or error found
           setStatus('error')
-          setError('No authentication code or error received from Instagram')
-          
+          setError('No authorization code received')
           setTimeout(() => {
-            navigate(returnUrl)
+            navigate('/')
           }, 3000)
         }
       } catch (err) {
-        console.error('❌ Callback processing error:', err)
         setStatus('error')
-        setError('Failed to process Instagram callback')
-        
+        setError(err.message)
         setTimeout(() => {
           navigate('/')
         }, 3000)

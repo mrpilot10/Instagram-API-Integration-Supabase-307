@@ -12,7 +12,7 @@ const InstagramPage = () => {
   const handleConnect = () => {
     setLoading(true)
     console.log('🎯 Instagram Connect button clicked!')
-    console.log('✅ Using Instagram API scopes')
+    console.log('✅ Using Instagram Business API scopes')
     redirectToInstagramAuth()
   }
 
@@ -30,14 +30,14 @@ const InstagramPage = () => {
           Connect Instagram
         </h1>
         <p className="text-gray-600">
-          Connect your Instagram account with enhanced permissions
+          Connect your Instagram account with enhanced business permissions
         </p>
       </div>
 
       <div className="space-y-4 mb-8">
         <div className="flex items-center space-x-3 text-sm text-gray-600">
           <SafeIcon icon={FiUser} className="text-purple-500 flex-shrink-0" />
-          <span>Access your profile and analytics</span>
+          <span>Access your business profile and analytics</span>
         </div>
         <div className="flex items-center space-x-3 text-sm text-gray-600">
           <SafeIcon icon={FiImage} className="text-purple-500 flex-shrink-0" />
@@ -76,18 +76,18 @@ const InstagramPage = () => {
 
       <div className="mt-6 text-center space-y-2">
         <p className="text-xs text-green-600 font-medium">
-          ✅ Uses Instagram API (2024)
+          ✅ Uses Instagram Business API (2024)
         </p>
         <p className="text-xs text-gray-500">
-          Enhanced permissions for content management
+          Enhanced business permissions for content management
         </p>
         <div className="bg-gray-50 rounded-lg p-3 mt-4">
           <p className="text-xs text-gray-600 font-medium mb-2">API Scopes:</p>
           <div className="space-y-1 text-xs text-gray-500">
-            <div>• instagram_basic</div>
-            <div>• instagram_content_publish</div>
-            <div>• instagram_manage_comments</div>
-            <div>• instagram_manage_insights</div>
+            <div>• instagram_business_basic</div>
+            <div>• instagram_business_content_publish</div>
+            <div>• instagram_business_manage_messages</div>
+            <div>• instagram_business_manage_comments</div>
           </div>
         </div>
       </div>

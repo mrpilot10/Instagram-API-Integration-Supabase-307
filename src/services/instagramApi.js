@@ -1,4 +1,4 @@
-// Instagram API configuration - Updated with new scopes
+// Instagram API configuration - Updated with correct business scopes
 const INSTAGRAM_APP_ID = '1413379789860625'
 const INSTAGRAM_CLIENT_SECRET = 'e1be236ec20e1c5e154f094b09dbac84'
 
@@ -37,7 +37,15 @@ const generateState = () => {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }
 
-// Real Instagram OAuth redirect with NEW SCOPES
+// 🚨 UPDATED: Using the correct Instagram Business API scopes
+const VALID_SCOPES = [
+  'instagram_business_basic',
+  'instagram_business_content_publish',
+  'instagram_business_manage_messages',
+  'instagram_business_manage_comments'
+]
+
+// Real Instagram OAuth redirect with UPDATED BUSINESS SCOPES
 export const redirectToInstagramAuth = (returnUrl = '/') => {
   const state = generateState()
   
@@ -48,12 +56,12 @@ export const redirectToInstagramAuth = (returnUrl = '/') => {
     timestamp: Date.now()
   })
   
-  // Build the Instagram authorization URL with NEW SCOPES
+  // Build the Instagram authorization URL with CORRECT BUSINESS SCOPES
   const params = new URLSearchParams({
     client_id: INSTAGRAM_APP_ID,
     redirect_uri: REDIRECT_URI,
-    // ✅ UPDATED: Using new scopes that are not deprecated
-    scope: 'instagram_basic,instagram_content_publish,instagram_manage_comments,instagram_manage_insights',
+    // 🚨 UPDATED: Using correct business scopes
+    scope: VALID_SCOPES.join(','),
     response_type: 'code',
     state: state
   })
@@ -140,12 +148,12 @@ export const refreshAccessToken = async (accessToken) => {
   }
 }
 
-// Get user media with enhanced fields for new scopes
+// Get user media with enhanced fields for business scopes
 export const getUserMedia = async (accessToken, limit = 25) => {
   try {
     console.log('🔄 Fetching user media with enhanced fields...')
     
-    // Enhanced fields available with new scopes
+    // Enhanced fields available with business scopes
     const mediaFields = [
       'id',
       'caption',
@@ -181,12 +189,12 @@ export const getUserMedia = async (accessToken, limit = 25) => {
   }
 }
 
-// Get user profile with enhanced fields for new scopes
+// Get user profile with enhanced fields for business scopes
 export const getUserProfile = async (accessToken) => {
   try {
     console.log('🔄 Fetching user profile with enhanced fields...')
     
-    // Enhanced fields available with new scopes
+    // Enhanced fields available with business scopes
     const profileFields = [
       'id',
       'username',

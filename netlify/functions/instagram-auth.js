@@ -1,7 +1,7 @@
 const { createClient } = require('@supabase/supabase-js')
 const fetch = require('node-fetch')
 
-// Instagram App Configuration - Updated for new scopes
+// Instagram App Configuration - Updated for correct business scopes
 const INSTAGRAM_CLIENT_ID = '1413379789860625'
 const INSTAGRAM_CLIENT_SECRET = 'e1be236ec20e1c5e154f094b09dbac84'
 
@@ -120,7 +120,7 @@ exports.handler = async (event, context) => {
     }
 
     console.log('📝 Processing Instagram auth with code:', code.substring(0, 10) + '...')
-    console.log('🔄 Using Instagram API scopes')
+    console.log('🔄 Using Instagram Business API scopes')
     console.log('🔄 Using redirect URI:', INSTAGRAM_REDIRECT_URI)
 
     // ✅ Exchange code for short-lived access token
@@ -256,7 +256,8 @@ exports.handler = async (event, context) => {
           expires_at: tokenExpiresAt.toISOString(),
           user_id: profile.id
         },
-        scopes_used: 'instagram_basic,instagram_content_publish,instagram_manage_comments,instagram_manage_insights'
+        // 🚨 UPDATED: Using correct business scopes
+        scopes_used: 'instagram_business_basic,instagram_business_content_publish,instagram_business_manage_messages,instagram_business_manage_comments'
       })
     }
   } catch (error) {

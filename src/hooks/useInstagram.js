@@ -38,7 +38,7 @@ export const useInstagram = () => {
       setPosts(authData.posts || [])
       
       // Clean up URL if needed
-      if (window.location.search.includes('code=')) {
+      if (window.location.search.includes('code=') || window.location.hash.includes('code=')) {
         window.history.replaceState({}, document.title, window.location.pathname)
       }
       
@@ -173,16 +173,24 @@ export const useInstagram = () => {
       return
     }
     
+    // Check both URL search params and hash for code
     const urlParams = new URLSearchParams(window.location.search)
-    const code = urlParams.get('code')
-    const error = urlParams.get('error')
+    let code = urlParams.get('code')
+    let errorParam = urlParams.get('error')
+    
+    // If not in search params, check hash
+    if (!code && window.location.hash) {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1))
+      code = hashParams.get('code')
+      errorParam = hashParams.get('error')
+    }
     
     if (code && !user) {
       console.log('✅ Found auth code in URL, processing...')
       handleAuthCallback(code)
-    } else if (error) {
-      console.log('❌ Found error in URL:', error)
-      setError(`Instagram error: ${error}`)
+    } else if (errorParam) {
+      console.log('❌ Found error in URL:', errorParam)
+      setError(`Instagram error: ${errorParam}`)
     }
   }, [user])
   

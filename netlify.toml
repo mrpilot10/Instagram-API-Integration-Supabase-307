@@ -1,7 +1,7 @@
 [build]
   command = "npm run build"
   publish = "dist"
-  
+
 [dev]
   command = "npm run dev"
   port = 3000
@@ -11,8 +11,13 @@
   from = "/*"
   to = "/index.html"
   status = 200
-  
+
 [[redirects]]
   from = "/auth/instagram/callback"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/callback"
   to = "/index.html"
   status = 200

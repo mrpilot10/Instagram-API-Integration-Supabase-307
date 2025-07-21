@@ -4,22 +4,60 @@ import SafeIcon from '../common/SafeIcon'
 import * as FiIcons from 'react-icons/fi'
 import { useInstagram } from '../hooks/useInstagram'
 
-const { FiAlertCircle, FiCheck } = FiIcons
+const { FiAlertCircle, FiCheck, FiLoader } = FiIcons
 
 const InstagramCallback = () => {
   const [status, setStatus] = useState('processing')
   const [error, setError] = useState(null)
+  const [debugInfo, setDebugInfo] = useState({})
   const navigate = useNavigate()
   const { handleAuthCallback } = useInstagram()
 
   useEffect(() => {
     const processCallback = async () => {
       try {
-        // Get URL parameters - handle both hash and search parameters
-        const params = new URLSearchParams(window.location.search || window.location.hash.replace('#', '?'))
-        const code = params.get('code')
-        const error = params.get('error')
-
+        // Get the full URL for debugging
+        const fullUrl = window.location.href
+        console.log('📍 Full callback URL:', fullUrl)
+        
+        // Handle both regular params and hash fragment
+        let params;
+        
+        // First try the search params
+        params = new URLSearchParams(window.location.search)
+        let code = params.get('code')
+        let errorParam = params.get('error')
+        
+        // If code is not in search params, check if it's after a hash
+        if (!code && window.location.hash) {
+          const hashParams = new URLSearchParams(window.location.hash.substring(1))
+          code = hashParams.get('code')
+          errorParam = hashParams.get('error')
+          
+          // If still no code, try treating the entire hash as a query string
+          if (!code && window.location.hash.includes('?')) {
+            const hashWithQuery = window.location.hash.substring(window.location.hash.indexOf('?'))
+            params = new URLSearchParams(hashWithQuery)
+            code = params.get('code')
+            errorParam = params.get('error')
+          }
+        }
+        
+        // Store debug info
+        setDebugInfo({
+          fullUrl,
+          search: window.location.search,
+          hash: window.location.hash,
+          code: code ? `${code.substring(0, 10)}...` : null
+        })
+        
+        console.log('🔍 Debug info:', {
+          url: window.location.href,
+          search: window.location.search,
+          hash: window.location.hash,
+          code: code ? `${code.substring(0, 10)}...` : null
+        })
+        
         if (code) {
           // Successfully received auth code
           console.log('✅ Instagram Authorization Code:', code.substring(0, 10) + '...')
@@ -33,17 +71,16 @@ const InstagramCallback = () => {
             
             // Redirect to dashboard after short delay
             setTimeout(() => {
-              // Redirect to dashboard page
               navigate('/dashboard')
             }, 1500)
           } else {
             throw new Error('Authentication failed')
           }
-        } else if (error) {
+        } else if (errorParam) {
           // Handle error from Instagram
-          console.error('❌ Instagram error:', error)
+          console.error('❌ Instagram error:', errorParam)
           setStatus('error')
-          setError(error)
+          setError(errorParam)
           
           setTimeout(() => {
             navigate('/')
@@ -81,11 +118,14 @@ const InstagramCallback = () => {
             <h2 className="text-xl font-semibold text-gray-900 mb-3">
               {status === 'processing' ? 'Processing Instagram Login...' : 'Exchanging Authorization Code...'}
             </h2>
-            <p className="text-gray-600">
+            <p className="text-gray-600 mb-4">
               {status === 'processing' 
                 ? 'Please wait while we process your authentication request.' 
                 : 'Connecting your Instagram account to our application...'}
             </p>
+            <div className="flex justify-center">
+              <SafeIcon icon={FiLoader} className="text-purple-500 animate-spin text-xl" />
+            </div>
           </>
         )}
 
@@ -114,9 +154,17 @@ const InstagramCallback = () => {
             <p className="text-red-600 mb-3">
               {error || 'An error occurred during Instagram authentication'}
             </p>
-            <p className="text-gray-600">
+            <p className="text-gray-600 mb-6">
               Redirecting you back to the main page...
             </p>
+            
+            {/* Debug information for troubleshooting */}
+            <div className="mt-4 text-left text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+              <p className="font-semibold mb-1">Debug Information:</p>
+              <pre className="overflow-auto max-h-24 whitespace-pre-wrap break-all">
+                {JSON.stringify(debugInfo, null, 2)}
+              </pre>
+            </div>
           </>
         )}
       </div>
